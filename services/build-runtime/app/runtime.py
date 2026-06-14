@@ -189,7 +189,8 @@ def chat(agent_version_id: str, question: str, k: int = 4,
     }
 
     # Live signal for the operate loop: log the turn, flag weak retrievals.
-    flagged = top_score < 0.35
+    # Threshold calibrated for the active embedder (bge relevant ~0.6-0.8); tunable.
+    flagged = top_score < float(os.environ.get("CHAT_FLAG_THRESHOLD", "0.5"))
     try:
         with _lin().engine.begin() as conn:
             conn.execute(

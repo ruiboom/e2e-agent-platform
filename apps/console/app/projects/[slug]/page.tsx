@@ -54,6 +54,9 @@ export default async function ProjectDetail({
 
       {mayWrite && (
         <div className="flex gap-3">
+          <Link href={`/projects/${project.slug}/shape`} className="no-underline">
+            <Button size="sm" variant="secondary">Shape &amp; plan</Button>
+          </Link>
           <Link href={`/projects/${project.slug}/specify`} className="no-underline">
             <Button size="sm" variant="secondary">Specify</Button>
           </Link>

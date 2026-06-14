@@ -46,12 +46,19 @@ export async function runSpecify(
   const res = await router.route({ prompt_key: "specify.spec", vars: { topic }, project_id: projectId });
   const spec = parseSpec(res.text);
 
+  // Link scope to a signed-off proposition if one exists (Phase 2 chain);
+  // otherwise scope is a genesis artifact (Phase 1 standalone slice).
+  const graph = await lineage().getLineage(projectId);
+  const proposition = graph.nodes
+    .filter((n) => n.type === "proposition" && n.payload.status === "signed_off")
+    .sort((a, b) => b.version - a.version)[0];
+
   const scope = await lineage().createArtifact({
     project_id: projectId,
     type: "scope",
     payload: { topic, ...spec.scope },
     created_by: session.userId,
-    parents: [],
+    parents: proposition ? [proposition.id] : [],
   });
   const systemPrompt = await lineage().createArtifact({
     project_id: projectId,

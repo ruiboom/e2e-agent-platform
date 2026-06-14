@@ -136,18 +136,22 @@ Browser → POST /api/chat (console route handler; injects identity)
 
 ## Deferred depth
 
-Per the build sequence, production depth is intentionally deferred. The current
-implementation vs. the production target:
+Per the build sequence, production depth was initially deferred. Much of it has
+since been **built and verified** (see [07 · Production hardening](07-hardening.md)).
+Current implementation vs. the production target:
 
 | Area | Now | Production target |
 |---|---|---|
-| Embeddings | feature-hash (offline, deterministic) | a real embedding model behind `py/providers` |
+| Embeddings | ✅ **bge-small via fastembed** (semantic) — hash fallback | done |
+| Guardrails | ✅ **Presidio NER + Luhn/IBAN-validated regex + output DLP** | done |
+| Policy / risk | ✅ **deny-rules policy engine + risk classifier** at Gate 2 | trained classifier, full OPA/Rego |
+| Audit | ✅ **hash-chained, WORM, tamper-evident** | external WORM mirror |
+| Auth | ✅ **OIDC (JWKS/JWT) path** — dev-stub also available | wire your IdP + MFA |
+| Data lifecycle | ✅ **retention purge + DSAR export/erase** | scheduled jobs |
 | Graph retrieval | token entity-index in Postgres | Neo4j / Apache AGE + graph-enricher |
 | Build paradigms | authoring surfaces over one RAG runtime | full LangGraph/ADK/flexi/VCBL runtimes (AF) |
 | Connectors | RSS + web | GitHub, Confluence/Jira, STT/audio, broadened OCR |
-| Guardrails | regex PII + injection heuristic | Presidio, OPA policy, trained risk classifier |
 | Deploy targets | logical (deployment artifact + guard policy) | real push to Vercel/GCP/Azure/Watson/… |
-| Auth | dev-stub behind `getSession()` | OIDC SSO via an IdP (same seam) |
 | Spine stores | cost/feedback on SQLite | Postgres if multi-writer scale demands |
 
 Each is isolated behind a seam, so upgrading one does not ripple across stages.

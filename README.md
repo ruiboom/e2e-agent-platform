@@ -15,7 +15,9 @@ the *how*; the *what/why* lives in [`orginal-docs/`](orginal-docs/).
 > (targets/channels + guardrails) → Operate (live logs auto-improve the prompt,
 > re-entering the pipeline). Academy provides per-stage enablement. Every answer
 > carries its provenance tuple; every step is linked in the lineage.
-> Prove it all: `make verify-all` (or `bash scripts/verify-m<N>.sh`).
+> Prove it all: `make verify-all` (M0–M8) + `bash scripts/verify-hardening.sh`
+> (H1–H6: hash-chained audit · policy/risk · DSAR · Presidio PII · real
+> embeddings · OIDC). See [docs/07-hardening.md](docs/07-hardening.md).
 
 ## Layout
 

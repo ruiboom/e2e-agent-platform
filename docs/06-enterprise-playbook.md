@@ -129,13 +129,14 @@ before regulated production (see §11).
 | C-4 | **Gate 2 — pre-deploy validation** | quality/latency/cost thresholds before Deploy | `eval_run`, `gate2`, `policy_bundle.pre_deploy_gates` | ✅ (thresholds ⚙️) |
 | C-5 | **Immutable lineage** | append-only, parent-linked artifacts; no in-place edits | `artifact`/`artifact_parent` | ✅ |
 | C-6 | **Answer provenance** | every answer cites release + revision + chunk | provenance tuple in chat response | ✅ |
-| C-7 | **Runtime guardrails** | injection blocked+escalated; PII redacted | `guardrails` in chat response | 🔶 (regex/heuristic) |
-| C-8 | **Ingest safety scans** | PII/injection scan on every revision | `kb_revision.scan_results` | 🔶 |
+| C-7 | **Runtime guardrails** | injection blocked+escalated; PII redacted (in + out) | `guardrails` in chat response | ✅ (Presidio) |
+| C-8 | **Ingest safety scans** | PII/injection scan on every revision | `kb_revision.scan_results` | ✅ (Presidio) |
 | C-9 | **Cost accountability** | per-call tokens/cost/latency metered | cost-tracker dashboard | ✅ |
 | C-10 | **Continuous monitoring** | every turn logged; weak turns flagged | `chat_log` | ✅ |
 | C-11 | **Controlled change (Operate)** | improvements are *proposals*, never auto-promoted | new `system_prompt` version + rationale | ✅ |
-| C-12 | **Policy bundle per project** | PII/injection/classification/risk + OPA + gates | `policy_bundle` | ⚙️ (OPA/risk 🔶) |
-| C-13 | **Audit trail** | who/when on artifacts + transitions | `created_by`, timestamps | 🔶 (no hash-chain yet) |
+| C-12 | **Policy bundle per project** | deny-rules policy + risk tiering at Gate 2 | `policy_bundle.opa_rules`, `gate2` | ✅ |
+| C-13 | **Audit trail** | hash-chained, WORM, tamper-evident | `audit_event`, `/api/audit/verify` | ✅ |
+| C-14 | **Data subject rights** | retention purge + DSAR export/erase, audited | `/api/admin/{retention,dsar}` | ✅ |
 
 Each control should have an **owner**, a **test of design** (does it exist) and a
 **test of operating effectiveness** (does it work) — the `verify-m*` scripts are
@@ -262,16 +263,20 @@ observability projections, not the system of record.
 ## 11. Go-live hardening gate
 
 **Do not run a regulated production workload until these are closed.** Each is
-isolated behind a seam, so closing it does not ripple across stages.
+isolated behind a seam, so closing it does not ripple across stages. Many platform
+items are now **built and verified** — see [07 · Production hardening](07-hardening.md)
+(`bash scripts/verify-hardening.sh`).
 
 | Item | Why it matters for regulated use | Status |
 |---|---|---|
-| **OIDC SSO + MFA** (replace dev-stub auth) | identity, access control, non-repudiation | 🔶 seam ready |
-| **Audit immutability** (hash-chained, WORM mirror) | tamper-evident evidence for examiners | 🔶 timestamps only |
-| **Validated PII detection** (Presidio) + output-side checks | data protection effectiveness | 🔶 regex today |
-| **OPA policy + risk classifier** in `policy_bundle` | enforce org policy at pre-authorize + final gate | 🔶 fields exist, not wired |
-| **Real embedding model + graph store** (Neo4j/AGE) | retrieval quality = answer quality | 🔶 hash/entity placeholder |
-| **Data residency & retention/erasure jobs** | GDPR, residency obligations | 🔶 configure |
+| **OIDC SSO** (replace dev-stub auth) | identity, access control, non-repudiation | ✅ built — wire your IdP + MFA |
+| **Audit immutability** (hash-chained, WORM) | tamper-evident evidence for examiners | ✅ built (add external WORM mirror) |
+| **Validated PII detection** (Presidio) + output-side checks | data protection effectiveness | ✅ built |
+| **OPA policy + risk classifier** in `policy_bundle` | enforce org policy at the final gate | ✅ built (deny-rules + risk tiers) |
+| **Real embedding model** | retrieval quality = answer quality | ✅ built (bge-small) |
+| **Retention / DSAR erasure** | GDPR data lifecycle | ✅ built (schedule the purge job) |
+| **Graph store** (Neo4j/AGE) + graph-enricher | richer graph retrieval | 🔶 token entity-index today |
+| **Data residency** confirmation | residency obligations | 🔶 configure (infra) |
 | **Provider/data-processing agreements** for the LLM | vendor & model risk | org task |
 | **Independent validation sign-off** (2nd line) of the eval methodology | model risk management | org task |
 | **Pen test + threat model** of the deployed surface | infosec assurance | org task |

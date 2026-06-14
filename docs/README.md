@@ -17,6 +17,7 @@ documentation for the system as built (milestones **M0–M8**, all green).
 | [04 · API reference](04-api-reference.md) | Every console route and service endpoint with request/response. |
 | [05 · Operations](05-operations.md) | Boot sequence, env vars, ports, verification, troubleshooting. |
 | [06 · Enterprise playbook](06-enterprise-playbook.md) | Operating model, controls, RACI, runbooks and the go-live hardening gate for **regulated organisations**. |
+| [07 · Production hardening](07-hardening.md) | The built-and-verified production depth: audit chain, policy engine, Presidio PII, real embeddings, OIDC, DSAR. |
 
 ## Stage user guides
 

@@ -61,3 +61,11 @@ verify-m0:
 # Run every milestone verification (M0–M8).
 verify-all:
 	bash scripts/verify-all.sh
+
+# Wipe all project/knowledge/graph data (keeps schema + router prompts).
+reset-data:
+	bash scripts/reset-data.sh
+
+# Seed the single explorable example project (overdraft-assistant).
+example:
+	bash scripts/seed-example.sh

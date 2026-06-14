@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from "@agent-platform/design-system";
 
@@ -54,7 +55,9 @@ export function AcademyPath({
             <div key={s.id} className="flex items-center gap-3 rounded-md border border-line p-3">
               <Badge tone={ok ? "success" : "neutral"}>{ok ? "✓" : "○"}</Badge>
               <div className="flex-1">
-                <div className="font-bold text-ink">{s.name}</div>
+                <Link href={`/academy/${s.id}`} className="font-bold text-ink no-underline hover:text-brand">
+                  {s.name} →
+                </Link>
                 <div className="text-[13px] text-ink-3">{s.blurb}</div>
               </div>
               {!ok && (

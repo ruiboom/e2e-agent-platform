@@ -1,5 +1,8 @@
+import Link from "next/link";
+
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -9,7 +12,7 @@ import {
 
 import { getProgress, serviceHealth } from "@/lib/academy";
 import { getSession } from "@/lib/auth";
-import { ROLE_PATHS, STAGES, stageById } from "@/lib/enablement";
+import { EXAMPLE_PROJECT, ROLE_PATHS, STAGES, stageById } from "@/lib/enablement";
 import { AcademyPath } from "@/components/AcademyPath";
 
 export const dynamic = "force-dynamic";
@@ -40,23 +43,49 @@ export default async function AcademyPage() {
         </p>
       </div>
 
-      {/* Per-stage contextual help, mapped 1:1 to the 11 stages */}
+      {/* Start-here callout → the worked example */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Start here — the worked example</CardTitle>
+          <CardDescription>
+            <span className="font-mono">{EXAMPLE_PROJECT}</span> is one project taken through every stage, so you can
+            click through real outputs. Open it, then read any stage&apos;s guide below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Link href={`/projects/${EXAMPLE_PROJECT}`} className="no-underline">
+            <Button size="sm">Open the example project →</Button>
+          </Link>
+          <Link href={`/projects/${EXAMPLE_PROJECT}/chat`} className="no-underline">
+            <Button size="sm" variant="secondary">Chat with the deployed agent</Button>
+          </Link>
+          <Link href={`/projects/${EXAMPLE_PROJECT}/shape`} className="no-underline">
+            <Button size="sm" variant="secondary">See the shaping outputs</Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      {/* Per-stage help, mapped 1:1 to the 11 stages — each card is a guide link */}
       <div className="grid gap-4">
         {PHASES.map((phase) => (
           <Card key={phase}>
             <CardHeader>
               <CardTitle>{phase}</CardTitle>
-              <CardDescription>How each stage works.</CardDescription>
+              <CardDescription>Click a stage for its guide.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-2 sm:grid-cols-2">
               {STAGES.filter((s) => s.phase === phase).map((s) => (
-                <div key={s.id} className="flex items-start gap-2 rounded-md border border-line p-3">
+                <Link
+                  key={s.id}
+                  href={`/academy/${s.id}`}
+                  className="flex items-start gap-2 rounded-md border border-line p-3 no-underline transition-colors hover:border-brand hover:bg-surface-page"
+                >
                   <Badge tone={health[s.service] ? "success" : "danger"}>{health[s.service] ? "live" : "down"}</Badge>
                   <div>
-                    <div className="font-bold text-ink">{s.name}</div>
+                    <div className="font-bold text-ink">{s.name} →</div>
                     <div className="text-[13px] text-ink-3">{s.blurb}</div>
                   </div>
-                </div>
+                </Link>
               ))}
             </CardContent>
           </Card>

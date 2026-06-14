@@ -14,6 +14,7 @@ import {
 import { getSession } from "@/lib/auth";
 import { lineage } from "@/lib/lineage";
 import { can } from "@/lib/rbac";
+import { LineageView } from "@/components/LineageView";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,9 @@ export default async function ProjectDetail({
   if (!project) notFound();
 
   const graph = await lineage().getLineage(project.id);
+  const orderedNodes = [...graph.nodes].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
   const costUrl = process.env.NEXT_PUBLIC_COST_TRACKER_URL;
   const session = await getSession();
   const mayWrite = session ? can(session.role, "artifact:write") : false;
@@ -108,21 +112,7 @@ export default async function ProjectDetail({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {graph.nodes.length === 0 ? (
-              <p className="text-ink-3">No artifacts yet.</p>
-            ) : (
-              <ol className="flex flex-col gap-2">
-                {graph.nodes.map((n) => (
-                  <li key={n.id} className="flex items-center gap-3 rounded-md border border-line p-3">
-                    <Badge tone="brand">{n.type} v{n.version}</Badge>
-                    <Badge>{n.status}</Badge>
-                    <span className="text-[13px] text-ink-3">
-                      {n.parents.length} parent{n.parents.length === 1 ? "" : "s"}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
+            <LineageView nodes={orderedNodes} />
           </CardContent>
         </Card>
       )}

@@ -11,6 +11,7 @@ documentation for the system as built (milestones **M0–M8**, all green).
 
 | Doc | What it covers |
 |---|---|
+| [**User guide**](USER-GUIDE.md) | **Start here** — a click-through of the whole workflow using the seeded `overdraft-assistant` example. |
 | [01 · System overview](01-overview.md) | What the platform is, the looped pipeline, core concepts (golden thread, provenance, gates). |
 | [02 · Architecture](02-architecture.md) | Layers, monorepo, services + ports, tech stack, model router, governance, observability. |
 | [03 · Data model & lineage](03-data-model.md) | Every table, every artifact type + payload shape, the lineage DAG, the provenance tuple. |

@@ -23,6 +23,14 @@ class AgentVersionRequest(BaseModel):
     build_paradigm: str = "code"
 
 
+class BuildRequest(BaseModel):
+    project_id: str
+    paradigm: str
+    system_prompt_artifact_id: str
+    kb_release_artifact_id: str
+    retrieval_strategy: str = "vector"
+
+
 class ChatRequest(BaseModel):
     agent_version_id: str
     question: str
@@ -43,6 +51,19 @@ def agent_version(req: AgentVersionRequest) -> dict:
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/v1/build")
+def build(req: BuildRequest) -> dict:
+    try:
+        return runtime.build_agent(
+            req.project_id, req.paradigm, req.system_prompt_artifact_id,
+            req.kb_release_artifact_id, req.retrieval_strategy,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"build failed: {e}")
 
 
 @app.post("/v1/chat")

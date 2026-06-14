@@ -33,6 +33,16 @@ def _lin() -> LineageClient:
 
 VALID_MODES = {"vector", "lexical", "hybrid", "graph", "graph_hybrid"}
 
+# Authoring surfaces over the same retrieve->generate runtime. Each produces a
+# valid agent_version; the runtime behaviour is identical (RAG over the pinned
+# release), so every paradigm passes the same chat + eval.
+PARADIGM_CONFIG: dict[str, dict[str, Any]] = {
+    "code": {},
+    "canvas": {"graph": {"nodes": ["retrieve", "generate"], "edges": [["retrieve", "generate"]]}},
+    "flow": {"flow": {"start": "answer", "states": [{"name": "answer", "action": "rag"}]}},
+    "yaml": {"yaml": "agents:\n  - name: responder\n    tool: kb_search\n    runtime: rag-v1\n"},
+}
+
 
 def create_agent_version(
     project_id: str,
@@ -40,6 +50,7 @@ def create_agent_version(
     kb_release_artifact_id: str,
     retrieval_strategy: str = "vector",
     build_paradigm: str = "code",
+    extra_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     sp = _lin().get_artifact(system_prompt_artifact_id)
     kbr = _lin().get_artifact(kb_release_artifact_id)
@@ -61,12 +72,55 @@ def create_agent_version(
             "release_key": release_key,
             "kb_release_artifact_id": kb_release_artifact_id,
             "system_prompt_artifact_id": system_prompt_artifact_id,
-            "config": {"k": 4, "model": DEFAULT_MODEL},
+            "config": {"k": 4, "model": DEFAULT_MODEL, **(extra_config or {})},
         },
         created_by="build-runtime",
         parents=[system_prompt_artifact_id, kb_release_artifact_id],
     )
-    return {"agent_version_id": artifact.id, "version": artifact.version, "release_key": release_key}
+    return {
+        "agent_version_id": artifact.id,
+        "version": artifact.version,
+        "release_key": release_key,
+        "build_paradigm": build_paradigm,
+    }
+
+
+def build_agent(
+    project_id: str,
+    paradigm: str,
+    system_prompt_artifact_id: str,
+    kb_release_artifact_id: str,
+    retrieval_strategy: str = "vector",
+) -> dict[str, Any]:
+    """Build an agent_version via a chosen paradigm. Generative synthesizes its
+    config from the spec (via the router) and is flagged unvalidated until eval."""
+    if paradigm == "generative":
+        sp = _lin().get_artifact(system_prompt_artifact_id)
+        system_prompt = (sp.payload.get("text") if sp else "") or ""
+        with httpx.Client(timeout=60.0) as client:
+            g = client.post(
+                f"{ROUTER_URL}/v1/route",
+                json={"prompt_key": "agent.generate_config", "vars": {"system_prompt": system_prompt},
+                      "project_id": project_id},
+            )
+            g.raise_for_status()
+            text = g.json()["text"]
+        import json as _json
+        import re as _re
+        m = _re.search(r"\{.*\}", text, _re.S)
+        cfg = _json.loads(m.group(0)) if m else {}
+        rs = cfg.get("retrieval_strategy", retrieval_strategy)
+        if rs not in VALID_MODES:
+            rs = retrieval_strategy
+        extra = {"generated": cfg, "validated": False}
+        return create_agent_version(project_id, system_prompt_artifact_id, kb_release_artifact_id, rs, "generative", extra)
+
+    if paradigm not in PARADIGM_CONFIG:
+        raise ValueError(f"unknown paradigm '{paradigm}'")
+    return create_agent_version(
+        project_id, system_prompt_artifact_id, kb_release_artifact_id,
+        retrieval_strategy, paradigm, PARADIGM_CONFIG[paradigm],
+    )
 
 
 def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:

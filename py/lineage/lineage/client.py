@@ -22,6 +22,8 @@ from typing import Any
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
+from lineage.audit import append as _audit_append
+
 
 @dataclass
 class Project:
@@ -157,6 +159,11 @@ class LineageClient:
                     text("INSERT INTO artifact_parent (child_id, parent_id) VALUES (:c, :p)"),
                     {"c": row["id"], "p": parent_id},
                 )
+            _audit_append(
+                conn, actor=created_by, action="artifact.create", project_id=project_id,
+                target_type="artifact", target_id=str(row["id"]), meta=f"{type}:v{version}",
+                payload={"type": type, "version": version},
+            )
             return _artifact(row, list(parents))
 
     def get_artifact(self, artifact_id: str) -> Artifact | None:

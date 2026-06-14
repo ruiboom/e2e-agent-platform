@@ -18,6 +18,7 @@ from sqlalchemy import text
 
 from governance import scan_injection, scan_pii
 from lineage import LineageClient
+from lineage.audit import append as audit_append
 from providers import embed, to_pgvector
 
 from app.chunk import chunk_markdown
@@ -121,6 +122,13 @@ def approve(revision_id: str, approver: str) -> dict[str, Any]:
             text("UPDATE kb_revision SET state='approved', approved_by=:a WHERE id=:r"),
             {"a": approver, "r": revision_id},
         )
+        pid = conn.execute(
+            text("SELECT i.project_id FROM kb_item i JOIN kb_revision r ON r.item_id=i.id WHERE r.id=:r"),
+            {"r": revision_id},
+        ).scalar()
+        audit_append(conn, actor=approver, action="knowledge.approve", project_id=str(pid) if pid else None,
+                     target_type="kb_revision", target_id=revision_id, meta="approved",
+                     payload={"submitted_by": row.submitted_by})
         return {"revision_id": revision_id, "state": "approved", "approved_by": approver}
 
 

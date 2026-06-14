@@ -11,6 +11,11 @@
 //   - `parents` is required at write time (may be [] for a genesis artifact).
 import pg from "pg";
 
+import { appendAudit } from "./audit.ts";
+
+export { appendAudit, verifyAuditChain, auditDigest } from "./audit.ts";
+export type { ChainResult, AuditInput } from "./audit.ts";
+
 export type ArtifactStatus = "draft" | "approved" | "superseded";
 
 export interface Project {
@@ -142,6 +147,11 @@ export class LineageClient {
           [artifact.id, parentId],
         );
       }
+      await appendAudit(client, {
+        actor: input.created_by, action: "artifact.create", projectId: input.project_id,
+        targetType: "artifact", targetId: artifact.id, meta: `${input.type}:v${version}`,
+        payload: { type: input.type, version },
+      });
       await client.query("COMMIT");
       return { ...artifact, parents: [...input.parents] };
     } catch (err) {

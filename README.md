@@ -6,6 +6,7 @@ the *how*; the *what/why* lives in [`orginal-docs/`](orginal-docs/).
 > 📚 **Full documentation:** [`docs/`](docs/) — [system overview](docs/01-overview.md) ·
 > [architecture](docs/02-architecture.md) · [data model](docs/03-data-model.md) ·
 > [API reference](docs/04-api-reference.md) · [operations](docs/05-operations.md) ·
+> [enterprise playbook](docs/06-enterprise-playbook.md) ·
 > [a user guide for every stage](docs/README.md#stage-user-guides).
 
 > **Status: M0–M8 all green.** The full 0 → live → improve loop runs end-to-end:

@@ -16,6 +16,7 @@ documentation for the system as built (milestones **M0–M8**, all green).
 | [03 · Data model & lineage](03-data-model.md) | Every table, every artifact type + payload shape, the lineage DAG, the provenance tuple. |
 | [04 · API reference](04-api-reference.md) | Every console route and service endpoint with request/response. |
 | [05 · Operations](05-operations.md) | Boot sequence, env vars, ports, verification, troubleshooting. |
+| [06 · Enterprise playbook](06-enterprise-playbook.md) | Operating model, controls, RACI, runbooks and the go-live hardening gate for **regulated organisations**. |
 
 ## Stage user guides
 

@@ -13,7 +13,14 @@ export async function POST(req: Request) {
   if (!can(session.role, "artifact:write")) {
     return NextResponse.json({ error: "forbidden: artifact:write" }, { status: 403 });
   }
-  const { agentVersionId } = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as {
+    agentVersionId?: string;
+    target?: string;
+    channels?: string[];
+  };
+  const agentVersionId = body.agentVersionId;
+  const target = body.target ?? "local";
+  const channels = body.channels ?? ["web"];
   if (!agentVersionId) return NextResponse.json({ error: "agentVersionId is required" }, { status: 400 });
 
   const av = await lineage().getArtifact(agentVersionId);
@@ -39,8 +46,10 @@ export async function POST(req: Request) {
     payload: {
       agent_version_id: agentVersionId,
       agent_version: av.version,
-      target: "local",
-      channels: ["web"],
+      target,
+      channels,
+      guardrail_policy: { pii: true, injection: true },
+      runtime_guards: ["pii", "injection", "escalation"],
       provenance: true,
       status: "live",
     },

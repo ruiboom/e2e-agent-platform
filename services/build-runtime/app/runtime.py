@@ -15,6 +15,7 @@ from typing import Any
 
 import httpx
 
+from governance import redact_pii, scan_injection
 from lineage import LineageClient
 
 GROUND_URL = os.environ.get("GROUND_URL", "http://localhost:8790").rstrip("/")
@@ -133,6 +134,22 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
     sp = _lin().get_artifact(av.payload["system_prompt_artifact_id"])
     system_prompt = (sp.payload.get("text") if sp else "") or ""
 
+    # Runtime guardrails (on by default). Injection -> block + escalate;
+    # PII in the input -> redact before it reaches the model / logs.
+    inj = scan_injection(question)
+    if inj.blocked:
+        return {
+            "answer": "I can't help with that request. It's been flagged for review.",
+            "retrieval_mode": mode,
+            "guardrails": {"injection": "blocked", "escalated": True, "match": inj.findings},
+            "provenance": {"release_key": release_key, "agent_version": av.version,
+                           "item_id": None, "revision_id": None, "chunk_id": None},
+            "citations": [], "model": None, "cost_usd": 0.0, "latency_ms": 0.0,
+        }
+    safe_question, pii = redact_pii(question)
+    guardrails = {"injection": "pass", "pii_redactions": len(pii), "escalated": False}
+    question = safe_question
+
     with httpx.Client(timeout=60.0) as client:
         # retrieve (mode chosen per agent_version)
         r = client.post(
@@ -166,6 +183,7 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
     return {
         "answer": gen["text"],
         "retrieval_mode": mode,
+        "guardrails": guardrails,
         "provenance": provenance,
         "citations": [
             {"item_id": c["item_id"], "chunk_id": c["chunk_id"], "score": c["score"], "heading_path": c["heading_path"]}

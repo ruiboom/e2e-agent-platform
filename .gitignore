@@ -3,6 +3,8 @@ node_modules/
 .next/
 dist/
 build/
+# ...but not the console route literally named "build".
+!apps/console/app/api/agent/build/
 .turbo/
 *.tsbuildinfo
 

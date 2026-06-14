@@ -5,8 +5,11 @@ requires-python = ">=3.12"
 [manifest]
 members = [
     "agent-platform-workspace",
+    "build-runtime",
     "cost-tracker-client",
+    "eval",
     "governance",
+    "ground",
     "lineage",
     "model-router",
     "providers",
@@ -194,6 +197,29 @@ wheels = [
 ]
 
 [[package]]
+name = "build-runtime"
+version = "0.0.0"
+source = { virtual = "services/build-runtime" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "lineage" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "httpx", specifier = ">=0.24" },
+    { name = "lineage", editable = "py/lineage" },
+    { name = "pydantic", specifier = ">=2.8" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
+]
+
+[[package]]
 name = "certifi"
 version = "2026.5.20"
 source = { registry = "https://pypi.org/simple" }
@@ -314,6 +340,29 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
+]
+
+[[package]]
+name = "eval"
+version = "0.0.0"
+source = { virtual = "services/eval" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "lineage" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "httpx", specifier = ">=0.24" },
+    { name = "lineage", editable = "py/lineage" },
+    { name = "pydantic", specifier = ">=2.8" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]
 
 [[package]]
@@ -538,6 +587,33 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/93/c5/3dc9475ace2c7a3680da12372cddd7f1ac874eb410a1ac48d3e9dab83782/greenlet-3.5.1-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:17d86354f0ae6b61bf9be5148d0dd34e06c3cb7c602c671f79f29ac3b150e659", size = 1678427, upload-time = "2026-05-20T13:14:43.71Z" },
     { url = "https://files.pythonhosted.org/packages/df/4e/750c15c317a41ffb36f0bf40b933e3d744a7dede61889f74443ea69690cf/greenlet-3.5.1-cp315-cp315t-win_amd64.whl", hash = "sha256:e7516cf6ae6b8a582c2770a0caed47b8a48373ed732c33d69a72913ae6ac923e", size = 245225, upload-time = "2026-05-20T13:13:59.366Z" },
     { url = "https://files.pythonhosted.org/packages/4f/fd/d3baea2eeb7b617efd47e87ca06e2ec2c6118d303aa9e918e0ce16eadc10/greenlet-3.5.1-cp315-cp315t-win_arm64.whl", hash = "sha256:5028648bf2253ec4745add746129d3904121fa7fe871a76bed23c5720573ce0a", size = 239590, upload-time = "2026-05-20T13:13:37.382Z" },
+]
+
+[[package]]
+name = "ground"
+version = "0.0.0"
+source = { virtual = "services/ground" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "lineage" },
+    { name = "providers" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "sqlalchemy" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "lineage", editable = "py/lineage" },
+    { name = "providers", editable = "py/providers" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "pydantic", specifier = ">=2.8" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "sqlalchemy", specifier = ">=2.0" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]
 
 [[package]]
@@ -932,7 +1008,7 @@ wheels = [
 [[package]]
 name = "model-router"
 version = "0.0.0"
-source = { editable = "services/model-router" }
+source = { virtual = "services/model-router" }
 dependencies = [
     { name = "cost-tracker-client" },
     { name = "fastapi" },
@@ -940,6 +1016,7 @@ dependencies = [
     { name = "litellm" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -952,6 +1029,7 @@ requires-dist = [
     { name = "litellm", specifier = ">=1.50" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "pydantic", specifier = ">=2.8" },
+    { name = "python-dotenv", specifier = ">=1.0" },
     { name = "sqlalchemy", specifier = ">=2.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]

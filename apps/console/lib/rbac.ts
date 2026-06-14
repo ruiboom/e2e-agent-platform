@@ -5,6 +5,7 @@ import type { Role, Session } from "./session";
 export type Capability =
   | "project:read"
   | "project:create"
+  | "artifact:write"
   | "artifact:approve"
   | "prompt:activate";
 
@@ -22,6 +23,7 @@ const ALL_ROLES: Role[] = [
 const CAPABILITIES: Record<Capability, Role[]> = {
   "project:read": ALL_ROLES,
   "project:create": ["contributor", "steward", "admin"],
+  "artifact:write": ["contributor", "steward", "admin"],
   "artifact:approve": ["approver", "steward", "admin", "compliance_approver"],
   "prompt:activate": ["admin"],
 };

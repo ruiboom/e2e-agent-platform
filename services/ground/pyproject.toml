@@ -1,0 +1,24 @@
+[project]
+name = "ground"
+version = "0.0.0"
+description = "Ground service — minimal canonical store + vector RAG (Phase 1)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.8",
+    "python-dotenv>=1.0",
+    "lineage",
+    "providers",
+]
+
+# Virtual workspace member (see model-router): run via
+# `uvicorn app.main:app --app-dir services/ground`.
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+lineage = { workspace = true }
+providers = { workspace = true }

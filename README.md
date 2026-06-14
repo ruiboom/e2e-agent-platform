@@ -3,21 +3,24 @@
 The shared **spine** that will carry the 11-stage agent pipeline + Academy. This
 repo is the *how*; the *what/why* lives in [`orginal-docs/`](orginal-docs/).
 
-> **Status:** Phase 0 — foundations / walking skeleton. Building toward
-> milestone **M0**: create a project → router answers a "hello" → cost + latency
-> in the dashboard → RBAC blocks an unauthorised role. See the full plan in
-> `orginal-docs/02-build-sequence.md`.
+> **Status:** **M0 + M1 green.** The backbone is up and the golden thread runs
+> end-to-end: scope → ground → build → deploy → evaluate, every step linked in
+> the lineage and every answer carrying its provenance tuple. See the roadmap in
+> `orginal-docs/02-build-sequence.md` (next: Phase 2 — front of funnel).
 
 ## Layout
 
 ```
-apps/console/        Next.js (App Router) shell — projects, hello, lineage/cost/feedback
+apps/console/        Next.js (App Router) shell — projects, specify, chat, lineage/cost/feedback
 services/
   model-router/      FastAPI — wraps LiteLLM + prompt/version registry; emits cost/latency
+  ground/            FastAPI — canonical store + vector RAG (pgvector); pins kb_release
+  build-runtime/     FastAPI — minimal vector-RAG agent; emits agent_version; chat + provenance
+  eval/              FastAPI — Judge node over transcripts; emits eval_run
   cost-tracker/      observability (copied seed; SQLite)
   feedback-tracker/  observability (copied seed; SQLite)
 packages/            shared TS libs (design-system, lineage-client, *-client, feedback-widget)
-py/                  shared Python libs (lineage, governance [stub], providers [stub])
+py/                  shared Python libs (lineage, providers [embeddings], governance [stub])
 db/                  Postgres migrations + runner
 infra/               docker-compose (Postgres+pgvector) + the spine services
 ```
@@ -32,12 +35,20 @@ infra/               docker-compose (Postgres+pgvector) + the spine services
 
 ```bash
 cp .env.example .env          # set ANTHROPIC_API_KEY
-make bootstrap                # pnpm install + uv sync
+make bootstrap                # pnpm install + uv sync --all-packages
 make infra-up                 # Postgres (pgvector) + cost/feedback services
-make migrate                  # create project/artifact/lineage/prompt tables
-make router                   # model-router on :8789   (separate shell)
-make dev                      # console on :3000         (separate shell)
-make verify-m0                # prove M0 end-to-end
+make migrate                  # create lineage / prompt / ground tables
+
+# each in its own shell:
+make router                   # model-router  :8789
+make ground                   # ground        :8790
+make build-runtime            # build runtime  :8791
+make eval                     # eval          :8792
+make dev                      # console       :3000
+
+bash scripts/seed-phase1.sh   # seed specify / answer / judge prompts
+make verify-m0                # prove M0 (backbone)
+bash scripts/verify-m1.sh     # prove M1 (golden thread end-to-end)
 ```
 
 ## Tech decisions (locked — see `orginal-docs/00-architecture.md`)

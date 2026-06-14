@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -10,7 +11,9 @@ import {
   CardTitle,
 } from "@agent-platform/design-system";
 
+import { getSession } from "@/lib/auth";
 import { lineage } from "@/lib/lineage";
+import { can } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +36,8 @@ export default async function ProjectDetail({
 
   const graph = await lineage().getLineage(project.id);
   const costUrl = process.env.NEXT_PUBLIC_COST_TRACKER_URL;
+  const session = await getSession();
+  const mayWrite = session ? can(session.role, "artifact:write") : false;
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,6 +51,17 @@ export default async function ProjectDetail({
           {project.domain ? <> · {project.domain}</> : null} · owner {project.owner}
         </p>
       </div>
+
+      {mayWrite && (
+        <div className="flex gap-3">
+          <Link href={`/projects/${project.slug}/specify`} className="no-underline">
+            <Button size="sm" variant="secondary">Specify</Button>
+          </Link>
+          <Link href={`/projects/${project.slug}/chat`} className="no-underline">
+            <Button size="sm" variant="secondary">Chat</Button>
+          </Link>
+        </div>
+      )}
 
       <nav className="flex gap-2 border-b border-line">
         {TABS.map((t) => (

@@ -19,6 +19,24 @@ services:
       timeout: 5s
       retries: 20
 
+  # Graph projection (H7). Neo4j stores the entity/relationship graph that the
+  # graph + graph_hybrid retrieval modes traverse.
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/password123
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4jdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   # Observability spine — copied verbatim from ../cost-tracker in W2; runs on SQLite.
   cost-tracker:
     build:
@@ -54,3 +72,4 @@ volumes:
   pgdata:
   cost_data:
   feedback_data:
+  neo4jdata:

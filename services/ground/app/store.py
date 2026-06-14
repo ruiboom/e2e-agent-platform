@@ -21,6 +21,7 @@ from lineage import LineageClient
 from lineage.audit import append as audit_append
 from providers import embed, to_pgvector
 
+from app import graph
 from app.chunk import chunk_markdown
 from app.db import get_engine
 
@@ -230,6 +231,32 @@ def _hydrate(conn, ranked, k):
     return out
 
 
+def _graph_cands(conn, project_id, revs, query, n):
+    """Neo4j graph candidates when available + enriched; else the entity-index."""
+    if graph.available():
+        chunk_ids = [str(r.id) for r in conn.execute(
+            text("SELECT id FROM kb_chunk WHERE revision_id::text = ANY(:revs)"), {"revs": revs}).all()]
+        g = graph.graph_candidates(project_id, _entities(query), chunk_ids, n)
+        if g:
+            return g
+    return _cand_graph(conn, revs, query, n)
+
+
+def enrich_release(project_id: str, release_key: str) -> dict[str, Any]:
+    with get_engine().connect() as conn:
+        revs = _release_revs(conn, project_id, release_key)
+        if not revs:
+            return {"enriched": 0}
+        rows = conn.execute(
+            text("SELECT c.id AS chunk_id, r.item_id, c.body FROM kb_chunk c "
+                 "JOIN kb_revision r ON r.id=c.revision_id WHERE c.revision_id::text = ANY(:revs)"),
+            {"revs": revs}).all()
+    chunks = [{"chunk_id": str(x.chunk_id), "item_id": str(x.item_id), "body": x.body} for x in rows]
+    result = graph.enrich_chunks(project_id, chunks)
+    result["graph"] = graph.stats(project_id)
+    return result
+
+
 def retrieve(project_id: str, release_key: str, query: str, k: int = 4, mode: str = "vector") -> list[dict[str, Any]]:
     with get_engine().connect() as conn:
         revs = _release_revs(conn, project_id, release_key)
@@ -243,9 +270,9 @@ def retrieve(project_id: str, release_key: str, query: str, k: int = 4, mode: st
         elif mode == "hybrid":
             ranked = _rrf(_cand_vector(conn, revs, query, n), _cand_lexical(conn, revs, query, n))
         elif mode == "graph":
-            ranked = _cand_graph(conn, revs, query, n)
+            ranked = _graph_cands(conn, project_id, revs, query, n)
         elif mode == "graph_hybrid":
-            ranked = _rrf(_cand_vector(conn, revs, query, n), _cand_graph(conn, revs, query, n))
+            ranked = _rrf(_cand_vector(conn, revs, query, n), _graph_cands(conn, project_id, revs, query, n))
         else:
             raise ValueError(f"unknown retrieval mode '{mode}'")
         return _hydrate(conn, ranked, k)

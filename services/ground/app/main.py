@@ -10,7 +10,7 @@ load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 from fastapi import FastAPI, HTTPException  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
-from app import connectors, store  # noqa: E402
+from app import connectors, graph, store  # noqa: E402
 
 app = FastAPI(title="ground", version="0.1.0")
 
@@ -55,9 +55,19 @@ class RetrieveRequest(BaseModel):
     mode: str = "vector"
 
 
+class EnrichRequest(BaseModel):
+    project_id: str
+    release_key: str
+
+
 @app.get("/healthz")
-def healthz() -> dict[str, str]:
-    return {"status": "ok", "modes": ",".join(RETRIEVAL_MODES)}
+def healthz() -> dict:
+    return {"status": "ok", "modes": ",".join(RETRIEVAL_MODES), "graph": "neo4j" if graph.available() else "entity-index"}
+
+
+@app.post("/v1/enrich")
+def enrich(req: EnrichRequest) -> dict:
+    return store.enrich_release(req.project_id, req.release_key)
 
 
 @app.post("/v1/ingest")

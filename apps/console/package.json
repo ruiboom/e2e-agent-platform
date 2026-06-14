@@ -14,6 +14,7 @@
     "@agent-platform/feedback-widget": "workspace:*",
     "@agent-platform/lineage-client": "workspace:*",
     "@agent-platform/model-router-client": "workspace:*",
+    "jose": "^5.9.6",
     "next": "^15.1.3",
     "pg": "^8.13.1",
     "react": "^19.0.0",

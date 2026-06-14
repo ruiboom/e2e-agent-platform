@@ -43,6 +43,12 @@ optimise:
 dev:
 	pnpm --filter @agent-platform/console dev
 
+# Run the Academy stack is part of the console; no separate process.
+
 # Prove milestone M0 end-to-end.
 verify-m0:
 	bash scripts/verify-m0.sh
+
+# Run every milestone verification (M0–M8).
+verify-all:
+	bash scripts/verify-all.sh

@@ -42,25 +42,38 @@ docs = [
   {"uri":"doc/switching","title":"Switching","body":"# Switching your account\n\nThe Current Account Switch Service moves your payments and balance within 7 working days and is covered by a guarantee."},
   {"uri":"doc/fees","title":"Account fees","body":"# Monthly account fees\n\nThe Classic Account has no monthly fee. The Club Lloyds account costs 3 pounds a month, waived if you pay in 2000 pounds a month."},
 ]
-req = urllib.request.Request(f"{ground}/v1/ingest", data=json.dumps({"project_id":pid,"docs":docs}).encode(),
-                             headers={"Content-Type":"application/json"})
-r = json.load(urllib.request.urlopen(req, timeout=30))
-print("  ingested items:", len(r["items"]))
+def post(path, body):
+    req = urllib.request.Request(f"{ground}{path}", data=json.dumps(body).encode(),
+                                 headers={"Content-Type":"application/json"})
+    return json.load(urllib.request.urlopen(req, timeout=30))
+r = post("/v1/ingest", {"project_id":pid,"docs":docs})
+for it in r["items"]:            # four-eyes: approve before release (Phase 3)
+    post("/v1/approve", {"revision_id": it["revision_id"], "approver":"alice"})
+print("  ingested+approved items:", len(r["items"]))
 PY
-[ $? -eq 0 ] && ok "ground ingest" || bad "ground ingest failed"
+[ $? -eq 0 ] && ok "ground ingest + four-eyes approve" || bad "ground ingest failed"
 KBOUT=$(psql "$DB" -tAc "SELECT id FROM artifact WHERE project_id='$PID' AND type='kb_outline' ORDER BY version DESC LIMIT 1")
 RELKEY=$(curl -s --max-time 20 -X POST "$GROUND/v1/release" -H 'Content-Type: application/json' \
   -d "{\"project_id\":\"$PID\",\"kb_outline_artifact_id\":\"$KBOUT\"}" \
   | python3 -c "import sys,json;print(json.load(sys.stdin)['release_key'])")
 [ -n "$RELKEY" ] && ok "kb_release pinned ($RELKEY)" || bad "release failed"
 
-echo; echo "── Build: agent_version, then Deploy ──"
+echo; echo "── Build: agent_version ──"
 AVID=$(curl -s -b "$JAR" --max-time 30 -X POST "$CONSOLE/api/agent/build" -H 'Content-Type: application/json' \
   -d "{\"projectId\":\"$PID\"}" | python3 -c "import sys,json;print(json.load(sys.stdin)['agent_version_id'])")
 [ -n "$AVID" ] && ok "agent_version built" || bad "build failed"
+
+echo; echo "── Evaluate: eval_run with a gate result ──"
+gate=$(curl -s --max-time 120 -X POST "$EVAL/v1/eval" -H 'Content-Type: application/json' \
+  -d "{\"agent_version_id\":\"$AVID\"}" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['gateResult'],d['metrics']['quality'])")
+[ -n "$gate" ] && ok "eval_run produced (gate=$gate)" || bad "eval failed"
+curl -s -o /dev/null -X POST "$EVAL/v1/policy" -H 'Content-Type: application/json' \
+  -d "{\"project_id\":\"$PID\",\"pre_deploy_gates\":{\"quality\":0.0}}"
+
+echo; echo "── Deploy: passes Gate 2 ──"
 dep_code=$(curl -s -b "$JAR" --max-time 15 -o /dev/null -w '%{http_code}' -X POST "$CONSOLE/api/deploy" \
   -H 'Content-Type: application/json' -d "{\"agentVersionId\":\"$AVID\"}")
-[ "$dep_code" = "201" ] && ok "deploy -> 201" || bad "deploy -> $dep_code"
+[ "$dep_code" = "201" ] && ok "deploy -> 201 (Gate 2 passed)" || bad "deploy -> $dep_code"
 
 echo; echo "── Chat: answer carries the provenance tuple ──"
 prov=$(curl -s -b "$JAR" --max-time 60 -X POST "$CONSOLE/api/chat" -H 'Content-Type: application/json' \
@@ -72,11 +85,6 @@ ok=all(p.get(k) is not None for k in need)
 print('OK' if ok else 'MISSING', json.dumps(p))")
 echo "  provenance: $prov"
 [ "${prov%% *}" = "OK" ] && ok "answer carries {release_key,agent_version,item_id,revision_id,chunk_id}" || bad "incomplete provenance tuple"
-
-echo; echo "── Evaluate: eval_run with a gate result ──"
-gate=$(curl -s --max-time 120 -X POST "$EVAL/v1/eval" -H 'Content-Type: application/json' \
-  -d "{\"agent_version_id\":\"$AVID\"}" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d['gateResult'],d['metrics']['quality'])")
-[ -n "$gate" ] && ok "eval_run produced (gate=$gate)" || bad "eval failed"
 
 echo; echo "── Lineage DAG: the five artifacts linked parent->child ──"
 edges=$(psql "$DB" -tAc "SELECT count(*) FROM artifact_parent ap

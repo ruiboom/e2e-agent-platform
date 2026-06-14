@@ -3,10 +3,13 @@
 The shared **spine** that will carry the 11-stage agent pipeline + Academy. This
 repo is the *how*; the *what/why* lives in [`orginal-docs/`](orginal-docs/).
 
-> **Status:** **M0 + M1 green.** The backbone is up and the golden thread runs
-> end-to-end: scope → ground → build → deploy → evaluate, every step linked in
-> the lineage and every answer carrying its provenance tuple. See the roadmap in
-> `orginal-docs/02-build-sequence.md` (next: Phase 2 — front of funnel).
+> **Status: M0–M8 all green.** The full 0 → live → improve loop runs end-to-end:
+> Discover → Define → Specify → Architect → Plan (Gate 1) → Ground (governed,
+> 6 retrieval modes) → Build (4 paradigms) → Test/Evaluate (Gate 2) → Deploy
+> (targets/channels + guardrails) → Operate (live logs auto-improve the prompt,
+> re-entering the pipeline). Academy provides per-stage enablement. Every answer
+> carries its provenance tuple; every step is linked in the lineage.
+> Prove it all: `make verify-all` (or `bash scripts/verify-m<N>.sh`).
 
 ## Layout
 
@@ -16,7 +19,8 @@ services/
   model-router/      FastAPI — wraps LiteLLM + prompt/version registry; emits cost/latency
   ground/            FastAPI — canonical store + vector RAG (pgvector); pins kb_release
   build-runtime/     FastAPI — minimal vector-RAG agent; emits agent_version; chat + provenance
-  eval/              FastAPI — Judge node over transcripts; emits eval_run
+  eval/              FastAPI — test-set gen + Judge + Gate 2; emits eval_run
+  optimise/          FastAPI — operate loop: live logs -> improved system_prompt
   cost-tracker/      observability (copied seed; SQLite)
   feedback-tracker/  observability (copied seed; SQLite)
 packages/            shared TS libs (design-system, lineage-client, *-client, feedback-widget)
@@ -44,11 +48,11 @@ make router                   # model-router  :8789
 make ground                   # ground        :8790
 make build-runtime            # build runtime  :8791
 make eval                     # eval          :8792
+make optimise                 # operate loop  :8793
 make dev                      # console       :3000
 
-bash scripts/seed-phase1.sh   # seed specify / answer / judge prompts
-make verify-m0                # prove M0 (backbone)
-bash scripts/verify-m1.sh     # prove M1 (golden thread end-to-end)
+for p in 1 2 4 5 7; do bash scripts/seed-phase$p.sh; done   # seed router prompts
+make verify-all               # prove every milestone M0–M8
 ```
 
 ## Tech decisions (locked — see `orginal-docs/00-architecture.md`)

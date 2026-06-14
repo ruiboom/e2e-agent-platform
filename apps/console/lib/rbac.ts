@@ -7,7 +7,8 @@ export type Capability =
   | "project:create"
   | "artifact:write"
   | "artifact:approve"
-  | "prompt:activate";
+  | "prompt:activate"
+  | "data:admin";
 
 const ALL_ROLES: Role[] = [
   "viewer",
@@ -26,6 +27,7 @@ const CAPABILITIES: Record<Capability, Role[]> = {
   "artifact:write": ["contributor", "steward", "admin"],
   "artifact:approve": ["approver", "steward", "admin", "compliance_approver"],
   "prompt:activate": ["admin"],
+  "data:admin": ["admin", "compliance_approver"],
 };
 
 export function can(role: Role, cap: Capability): boolean {

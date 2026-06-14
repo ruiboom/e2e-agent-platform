@@ -125,7 +125,8 @@ def build_agent(
     )
 
 
-def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
+def chat(agent_version_id: str, question: str, k: int = 4,
+         user_id: str | None = None, session_id: str | None = None) -> dict[str, Any]:
     av = _lin().get_artifact(agent_version_id)
     if av is None or av.type != "agent_version":
         raise ValueError("agent_version_id is not an agent_version artifact")
@@ -188,10 +189,10 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
     try:
         with _lin().engine.begin() as conn:
             conn.execute(
-                text("INSERT INTO chat_log (project_id, agent_version_id, question, answer, top_score, flagged) "
-                     "VALUES (:p,:a,:q,:ans,:s,:f)"),
+                text("INSERT INTO chat_log (project_id, agent_version_id, question, answer, top_score, flagged, user_id, session_id) "
+                     "VALUES (:p,:a,:q,:ans,:s,:f,:u,:sid)"),
                 {"p": project_id, "a": agent_version_id, "q": question, "ans": gen["text"],
-                 "s": top_score, "f": flagged},
+                 "s": top_score, "f": flagged, "u": user_id, "sid": session_id},
             )
     except Exception:  # logging must never break a chat
         pass

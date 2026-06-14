@@ -35,6 +35,8 @@ class ChatRequest(BaseModel):
     agent_version_id: str
     question: str
     k: int = Field(default=4, ge=1, le=20)
+    user_id: str | None = None
+    session_id: str | None = None
 
 
 @app.get("/healthz")
@@ -69,7 +71,7 @@ def build(req: BuildRequest) -> dict:
 @app.post("/v1/chat")
 def chat(req: ChatRequest) -> dict:
     try:
-        return runtime.chat(req.agent_version_id, req.question, req.k)
+        return runtime.chat(req.agent_version_id, req.question, req.k, req.user_id, req.session_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

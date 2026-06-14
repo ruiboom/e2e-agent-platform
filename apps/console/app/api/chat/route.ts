@@ -17,7 +17,11 @@ export async function POST(req: Request) {
     const res = await fetch(`${RUNTIME}/v1/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-AP-User": session.userId, "X-AP-Role": session.role },
-      body: JSON.stringify({ agent_version_id: body.agentVersionId, question: body.question }),
+      body: JSON.stringify({
+        agent_version_id: body.agentVersionId,
+        question: body.question,
+        user_id: session.userId,
+      }),
     });
     const data = await res.json().catch(() => ({ error: "non-JSON from build-runtime" }));
     return NextResponse.json(data, { status: res.status });

@@ -174,6 +174,10 @@ def chat(agent_version_id: str, question: str, k: int = 4,
         g.raise_for_status()
         gen = g.json()
 
+    # Output-side DLP: redact any PII the model emitted before it leaves the system.
+    answer, out_pii = redact_pii(gen["text"])
+    guardrails["output_pii"] = len(out_pii)
+
     top = chunks[0] if chunks else None
     top_score = float(top["score"]) if top else 0.0
     provenance = {
@@ -191,14 +195,14 @@ def chat(agent_version_id: str, question: str, k: int = 4,
             conn.execute(
                 text("INSERT INTO chat_log (project_id, agent_version_id, question, answer, top_score, flagged, user_id, session_id) "
                      "VALUES (:p,:a,:q,:ans,:s,:f,:u,:sid)"),
-                {"p": project_id, "a": agent_version_id, "q": question, "ans": gen["text"],
+                {"p": project_id, "a": agent_version_id, "q": question, "ans": answer,
                  "s": top_score, "f": flagged, "u": user_id, "sid": session_id},
             )
     except Exception:  # logging must never break a chat
         pass
 
     return {
-        "answer": gen["text"],
+        "answer": answer,
         "retrieval_mode": mode,
         "guardrails": guardrails,
         "provenance": provenance,

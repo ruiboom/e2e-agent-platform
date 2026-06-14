@@ -32,8 +32,9 @@ class IngestRequest(BaseModel):
 class ConnectRequest(BaseModel):
     project_id: str
     kind: str
-    url: str | None = None
+    url: str | None = None        # web URL, RSS URL, or "owner/name" for github
     content: str | None = None
+    paths: list[str] | None = None  # github: specific files (default: README)
     submitted_by: str = "connector"
 
 
@@ -78,7 +79,7 @@ def ingest(req: IngestRequest) -> dict:
 @app.post("/v1/connect")
 def connect(req: ConnectRequest) -> dict:
     try:
-        docs = connectors.collect(req.kind, req.url, req.content)
+        docs = connectors.collect(req.kind, req.url, req.content, req.paths)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"connector": req.kind, "items": store.ingest(req.project_id, docs, req.submitted_by)}

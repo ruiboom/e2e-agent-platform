@@ -10,7 +10,7 @@ sleep 2
 
 fail=0
 summary=""
-for h in audit policy retention pii embed oidc; do
+for h in audit policy retention pii embed oidc graph langgraph github; do
   echo "################  verify-h-$h  ################"
   if bash "$here/verify-h-$h.sh"; then summary="${summary}  PASS  H-${h}
 "; else summary="${summary}  FAIL  H-${h}

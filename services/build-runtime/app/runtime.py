@@ -19,6 +19,8 @@ from sqlalchemy import text
 from governance import redact_pii, scan_injection
 from lineage import LineageClient
 
+from app import rag
+
 GROUND_URL = os.environ.get("GROUND_URL", "http://localhost:8790").rstrip("/")
 ROUTER_URL = os.environ.get("MODEL_ROUTER_URL", "http://localhost:8789").rstrip("/")
 DEFAULT_MODEL = os.environ.get("MODEL_ROUTER_DEFAULT_MODEL", "claude-haiku-4-5")
@@ -43,6 +45,9 @@ PARADIGM_CONFIG: dict[str, dict[str, Any]] = {
     "canvas": {"graph": {"nodes": ["retrieve", "generate"], "edges": [["retrieve", "generate"]]}},
     "flow": {"flow": {"start": "answer", "states": [{"name": "answer", "action": "rag"}]}},
     "yaml": {"yaml": "agents:\n  - name: responder\n    tool: kb_search\n    runtime: rag-v1\n"},
+    # langgraph runs a real compiled StateGraph at chat time (see langgraph_runtime).
+    "langgraph": {"graph": {"engine": "langgraph", "nodes": ["retrieve", "generate"],
+                            "edges": [["__start__", "retrieve"], ["retrieve", "generate"], ["generate", "__end__"]]}},
 }
 
 
@@ -152,27 +157,15 @@ def chat(agent_version_id: str, question: str, k: int = 4,
     guardrails = {"injection": "pass", "pii_redactions": len(pii), "escalated": False}
     question = safe_question
 
-    with httpx.Client(timeout=60.0) as client:
-        # retrieve (mode chosen per agent_version)
-        r = client.post(
-            f"{GROUND_URL}/v1/retrieve",
-            json={"project_id": project_id, "release_key": release_key, "query": question, "k": k, "mode": mode},
-        )
-        r.raise_for_status()
-        chunks = r.json()["chunks"]
-        context = "\n\n".join(f"[{c['item_id'][:8]}] {c['body']}" for c in chunks) or "(no context found)"
-
-        # generate
-        g = client.post(
-            f"{ROUTER_URL}/v1/route",
-            json={
-                "prompt_key": "agent.answer",
-                "vars": {"system_prompt": system_prompt, "context": context, "question": question},
-                "project_id": project_id,
-            },
-        )
-        g.raise_for_status()
-        gen = g.json()
+    # Orchestrate retrieve -> generate. The `langgraph` paradigm runs a real
+    # LangGraph StateGraph; other paradigms call the shared steps directly.
+    paradigm = av.payload.get("build_paradigm", "code")
+    if paradigm == "langgraph":
+        from app import langgraph_runtime
+        chunks, gen = langgraph_runtime.run(project_id, release_key, mode, system_prompt, question, k)
+    else:
+        chunks = rag.retrieve(project_id, release_key, question, k, mode)
+        gen = rag.generate(project_id, system_prompt, rag.build_context(chunks), question)
 
     # Output-side DLP: redact any PII the model emitted before it leaves the system.
     answer, out_pii = redact_pii(gen["text"])
@@ -205,6 +198,7 @@ def chat(agent_version_id: str, question: str, k: int = 4,
     return {
         "answer": answer,
         "retrieval_mode": mode,
+        "build_paradigm": paradigm,
         "guardrails": guardrails,
         "provenance": provenance,
         "citations": [

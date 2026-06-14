@@ -8,6 +8,7 @@ import { getSession } from "@/lib/auth";
 const NAV = [
   { href: "/", label: "Dashboard" },
   { href: "/projects", label: "Projects" },
+  { href: "/academy", label: "Academy" },
   { href: "/hello", label: "Hello" },
 ];
 

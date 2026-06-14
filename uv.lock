@@ -351,6 +351,7 @@ version = "0.0.0"
 source = { virtual = "services/eval" }
 dependencies = [
     { name = "fastapi" },
+    { name = "governance" },
     { name = "httpx" },
     { name = "lineage" },
     { name = "pydantic" },
@@ -361,6 +362,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
+    { name = "governance", editable = "py/governance" },
     { name = "httpx", specifier = ">=0.24" },
     { name = "lineage", editable = "py/lineage" },
     { name = "pydantic", specifier = ">=2.8" },

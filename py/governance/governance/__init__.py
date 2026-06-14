@@ -63,4 +63,10 @@ def redact_pii(text: str) -> tuple[str, list[dict]]:
     return out, findings
 
 
-__all__ = ["ScanResult", "scan_pii", "scan_injection", "classify", "redact_pii"]
+from governance.policy import evaluate as evaluate_policy  # noqa: E402
+from governance.risk import classify_risk  # noqa: E402
+
+__all__ = [
+    "ScanResult", "scan_pii", "scan_injection", "classify", "redact_pii",
+    "evaluate_policy", "classify_risk",
+]

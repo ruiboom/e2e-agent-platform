@@ -10,6 +10,7 @@ dependencies = [
     "pydantic>=2.8",
     "python-dotenv>=1.0",
     "lineage",
+    "governance",
 ]
 
 # Virtual workspace member: run via `uvicorn app.main:app --app-dir services/eval`.
@@ -18,3 +19,4 @@ package = false
 
 [tool.uv.sources]
 lineage = { workspace = true }
+governance = { workspace = true }

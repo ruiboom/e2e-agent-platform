@@ -38,11 +38,13 @@ class RunSuiteRequest(BaseModel):
 class PolicyRequest(BaseModel):
     project_id: str
     pre_deploy_gates: dict
+    opa_rules: dict | None = None
 
 
 class Gate2Request(BaseModel):
     project_id: str
     agent_version_id: str
+    context: dict | None = None
 
 
 @app.get("/healthz")
@@ -85,9 +87,9 @@ def get_policy(project_id: str) -> dict:
 
 @app.post("/v1/policy")
 def set_policy(req: PolicyRequest) -> dict:
-    return evaluate.set_policy(req.project_id, req.pre_deploy_gates)
+    return evaluate.set_policy(req.project_id, req.pre_deploy_gates, req.opa_rules)
 
 
 @app.post("/v1/gate2")
 def gate2(req: Gate2Request) -> dict:
-    return evaluate.gate2(req.project_id, req.agent_version_id)
+    return evaluate.gate2(req.project_id, req.agent_version_id, req.context)

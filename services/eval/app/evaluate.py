@@ -14,6 +14,7 @@ from typing import Any
 import httpx
 from sqlalchemy import text
 
+from governance import classify_risk, evaluate_policy
 from lineage import LineageClient
 
 GROUND_URL = os.environ.get("GROUND_URL", "http://localhost:8790").rstrip("/")
@@ -168,24 +169,41 @@ def run_suite(agent_version_id: str, test_suite_id: str) -> dict[str, Any]:
 
 def get_policy(project_id: str) -> dict[str, Any]:
     with _lin().engine.connect() as conn:
-        row = conn.execute(text("SELECT pre_deploy_gates FROM policy_bundle WHERE project_id=:p ORDER BY id LIMIT 1"),
-                           {"p": project_id}).first()
-    return {"pre_deploy_gates": (row.pre_deploy_gates if row else {})}
+        row = conn.execute(
+            text("SELECT pre_deploy_gates, opa_rules FROM policy_bundle WHERE project_id=:p ORDER BY id LIMIT 1"),
+            {"p": project_id}).first()
+    return {
+        "pre_deploy_gates": (row.pre_deploy_gates if row else {}),
+        "opa_rules": (row.opa_rules if row else {}),
+    }
 
 
-def set_policy(project_id: str, gates: dict[str, Any]) -> dict[str, Any]:
+def set_policy(project_id: str, gates: dict[str, Any], opa_rules: dict[str, Any] | None = None) -> dict[str, Any]:
     with _lin().engine.begin() as conn:
         row = conn.execute(text("SELECT id FROM policy_bundle WHERE project_id=:p LIMIT 1"), {"p": project_id}).first()
         if row:
             conn.execute(text("UPDATE policy_bundle SET pre_deploy_gates=CAST(:g AS jsonb) WHERE id=:id"),
                          {"g": json.dumps(gates), "id": row.id})
+            if opa_rules is not None:
+                conn.execute(text("UPDATE policy_bundle SET opa_rules=CAST(:o AS jsonb) WHERE id=:id"),
+                             {"o": json.dumps(opa_rules), "id": row.id})
         else:
-            conn.execute(text("INSERT INTO policy_bundle (project_id, pre_deploy_gates) VALUES (:p, CAST(:g AS jsonb))"),
-                         {"p": project_id, "g": json.dumps(gates)})
-    return {"project_id": project_id, "pre_deploy_gates": gates}
+            conn.execute(
+                text("INSERT INTO policy_bundle (project_id, pre_deploy_gates, opa_rules) "
+                     "VALUES (:p, CAST(:g AS jsonb), CAST(:o AS jsonb))"),
+                {"p": project_id, "g": json.dumps(gates), "o": json.dumps(opa_rules or {})})
+    return {"project_id": project_id, "pre_deploy_gates": gates, "opa_rules": opa_rules}
 
 
-def gate2(project_id: str, agent_version_id: str) -> dict[str, Any]:
+def _scope_topic(project_id: str) -> str:
+    with _lin().engine.connect() as conn:
+        r = conn.execute(
+            text("SELECT payload->>'topic' FROM artifact WHERE project_id=:p AND type='scope' "
+                 "ORDER BY version DESC LIMIT 1"), {"p": project_id}).scalar()
+    return r or ""
+
+
+def gate2(project_id: str, agent_version_id: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
     with _lin().engine.connect() as conn:
         ev = conn.execute(text(
             "SELECT a.payload FROM artifact a JOIN artifact_parent ap ON ap.child_id=a.id "
@@ -194,7 +212,16 @@ def gate2(project_id: str, agent_version_id: str) -> dict[str, Any]:
     if not ev:
         return {"pass": False, "reasons": ["no eval_run for this agent_version"]}
     metrics = ev.payload["metrics"]
-    gates = get_policy(project_id)["pre_deploy_gates"] or {"quality": QUALITY_GATE}
+    policy = get_policy(project_id)
+    gates = policy["pre_deploy_gates"] or {"quality": QUALITY_GATE}
+
+    # Classify risk from the agent's purpose (scope topic + system prompt).
+    av = _lin().get_artifact(agent_version_id)
+    sp = _lin().get_artifact(av.payload["system_prompt_artifact_id"]) if av else None
+    sp_text = (sp.payload.get("text") if sp else "") or ""
+    risk = classify_risk(f"{_scope_topic(project_id)} {sp_text}")
+    ctx = {**(context or {}), "risk_tier": risk["risk_tier"], **metrics}
+
     reasons: list[str] = []
     if "quality" in gates and metrics["quality"] < gates["quality"]:
         reasons.append(f"quality {metrics['quality']} < {gates['quality']}")
@@ -202,11 +229,17 @@ def gate2(project_id: str, agent_version_id: str) -> dict[str, Any]:
         reasons.append(f"latency {metrics['latency_ms']} > {gates['latency_ms']}")
     if "cost_usd" in gates and metrics["cost_usd"] > gates["cost_usd"]:
         reasons.append(f"cost {metrics['cost_usd']} > {gates['cost_usd']}")
+    pol = evaluate_policy(policy["opa_rules"], ctx)
+    for v in pol["violations"]:
+        reasons.append(f"policy[{v['id']}]: {v['reason']}")
+
     passed = not reasons
     gate_id = None
     if passed:
         art = _lin().create_artifact(project_id=project_id, type="gate2",
-            payload={"decision": "pass", "metrics": metrics, "gates": gates},
+            payload={"decision": "pass", "metrics": metrics, "gates": gates,
+                     "risk_tier": risk["risk_tier"], "context": ctx},
             created_by="gate", parents=[agent_version_id])
         gate_id = art.id
-    return {"pass": passed, "reasons": reasons, "metrics": metrics, "gates": gates, "gate2_id": gate_id}
+    return {"pass": passed, "reasons": reasons, "metrics": metrics, "gates": gates,
+            "risk_tier": risk["risk_tier"], "risk_signals": risk["signals"], "gate2_id": gate_id}

@@ -32,7 +32,11 @@ export async function POST(req: Request) {
   const g2 = await fetch(`${EVAL_URL}/v1/gate2`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ project_id: av.project_id, agent_version_id: agentVersionId }),
+    body: JSON.stringify({
+      project_id: av.project_id,
+      agent_version_id: agentVersionId,
+      context: { target, channels },
+    }),
   })
     .then((r) => r.json())
     .catch(() => ({ pass: false, reasons: ["eval service unreachable"] }));

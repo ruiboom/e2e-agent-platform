@@ -40,6 +40,7 @@ stay off the client.
 | **cost-tracker** | 8787 | FastAPI + SQLite | Per-app burn-rate dashboard (copied seed, run as-is). |
 | **feedback-tracker** | 8788 | FastAPI + SQLite | In-UI feedback widget + triage (copied seed). |
 | **Postgres** | 5433 | `pgvector/pgvector:pg16` (Docker) | Canonical + lineage store. Host **5433** to avoid a local Postgres on 5432. |
+| **Neo4j** | 7687/7474 | `neo4j:5-community` (Docker) | Graph projection (H7) — entity/relationship graph for graph retrieval. |
 
 All five platform FastAPI services are **virtual `uv` workspace members** run via
 `uvicorn app.main:app --app-dir services/<name>` (avoids a top-level `app`
@@ -148,9 +149,9 @@ Current implementation vs. the production target:
 | Audit | ✅ **hash-chained, WORM, tamper-evident** | external WORM mirror |
 | Auth | ✅ **OIDC (JWKS/JWT) path** — dev-stub also available | wire your IdP + MFA |
 | Data lifecycle | ✅ **retention purge + DSAR export/erase** | scheduled jobs |
-| Graph retrieval | token entity-index in Postgres | Neo4j / Apache AGE + graph-enricher |
-| Build paradigms | authoring surfaces over one RAG runtime | full LangGraph/ADK/flexi/VCBL runtimes (AF) |
-| Connectors | RSS + web | GitHub, Confluence/Jira, STT/audio, broadened OCR |
+| Graph retrieval | ✅ **Neo4j + LLM graph-enricher** (entity index fallback) | done |
+| Build paradigms | ✅ **real LangGraph runtime** for `langgraph` (others = config) | ADK/flexi/VCBL runtimes |
+| Connectors | ✅ **GitHub** + RSS + web | Confluence/Jira, STT/audio |
 | Deploy targets | logical (deployment artifact + guard policy) | real push to Vercel/GCP/Azure/Watson/… |
 | Spine stores | cost/feedback on SQLite | Postgres if multi-writer scale demands |
 

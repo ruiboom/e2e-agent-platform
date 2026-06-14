@@ -22,5 +22,5 @@ kill "$issuer" 2>/dev/null
 echo "════════════════════════════════════════"
 printf "%s" "$summary"
 echo "════════════════════════════════════════"
-[ "$fail" -eq 0 ] && echo "  ✅ ALL HARDENING GREEN (H1-H6)" || echo "  ❌ $fail hardening item(s) failed"
+[ "$fail" -eq 0 ] && echo "  ✅ ALL HARDENING GREEN (H1-H9)" || echo "  ❌ $fail hardening item(s) failed"
 exit "$fail"

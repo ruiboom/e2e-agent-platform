@@ -17,6 +17,7 @@ members = [
     "services/ground",
     "services/build-runtime",
     "services/eval",
+    "services/optimise",
     "services/cost-tracker/client",
 ]
 

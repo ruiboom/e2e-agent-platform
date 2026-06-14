@@ -1,0 +1,20 @@
+[project]
+name = "optimise"
+version = "0.0.0"
+description = "Operate service — detect/diagnose/prescribe over live logs (Phase 7)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.24",
+    "pydantic>=2.8",
+    "python-dotenv>=1.0",
+    "lineage",
+]
+
+# Virtual workspace member: run via `uvicorn app.main:app --app-dir services/optimise`.
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+lineage = { workspace = true }

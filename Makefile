@@ -35,6 +35,10 @@ build-runtime:
 eval:
 	uv run uvicorn app.main:app --reload --app-dir services/eval --port 8792
 
+# Run the Operate service (close the loop) on :8793.
+optimise:
+	uv run uvicorn app.main:app --reload --app-dir services/optimise --port 8793
+
 # Run the Next.js console on :3000.
 dev:
 	pnpm --filter @agent-platform/console dev

@@ -14,6 +14,7 @@ import os
 from typing import Any
 
 import httpx
+from sqlalchemy import text
 
 from governance import redact_pii, scan_injection
 from lineage import LineageClient
@@ -173,6 +174,7 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
         gen = g.json()
 
     top = chunks[0] if chunks else None
+    top_score = float(top["score"]) if top else 0.0
     provenance = {
         "release_key": release_key,
         "agent_version": av.version,
@@ -180,6 +182,20 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
         "revision_id": top["revision_id"] if top else None,
         "chunk_id": top["chunk_id"] if top else None,
     }
+
+    # Live signal for the operate loop: log the turn, flag weak retrievals.
+    flagged = top_score < 0.35
+    try:
+        with _lin().engine.begin() as conn:
+            conn.execute(
+                text("INSERT INTO chat_log (project_id, agent_version_id, question, answer, top_score, flagged) "
+                     "VALUES (:p,:a,:q,:ans,:s,:f)"),
+                {"p": project_id, "a": agent_version_id, "q": question, "ans": gen["text"],
+                 "s": top_score, "f": flagged},
+            )
+    except Exception:  # logging must never break a chat
+        pass
+
     return {
         "answer": gen["text"],
         "retrieval_mode": mode,

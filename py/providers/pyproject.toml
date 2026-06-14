@@ -1,9 +1,11 @@
 [project]
 name = "providers"
 version = "0.0.0"
-description = "Embedding + LLM provider adapters — stub in Phase 0"
+description = "Embedding + LLM provider adapters — real ONNX embeddings (fastembed)"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastembed>=0.3",
+]
 
 [build-system]
 requires = ["hatchling"]

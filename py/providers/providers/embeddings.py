@@ -1,24 +1,45 @@
-"""Embedding adapter seam.
+"""Embedding adapter seam (H5).
 
-Phase 1 ships a dependency-free, deterministic **feature-hashing** embedder so
-Ground's vector RAG works offline with no model download. It ranks by shared-token
-overlap (cosine over L2-normalised signed-hash bags) — enough to prove the thread.
-Swapping in a real model (sentence-transformers / fastembed / a hosted embeddings
-API) is a one-function change here; the rest of Ground is unchanged.
+Uses a real ONNX embedding model — **BAAI/bge-small-en-v1.5** via `fastembed`
+(384-dim, matches the `kb_chunk.embedding vector(384)` column) — for genuine
+semantic retrieval. Falls back to a deterministic feature-hash embedder if
+fastembed/the model is unavailable, so Ground still works offline. `embed_engine()`
+reports which is active. Re-embedding existing chunks is a projection rebuild;
+new ingests use whichever engine is active.
 """
 from __future__ import annotations
 
 import hashlib
 import math
 import re
+from typing import Any
 
 EMBED_DIM = 384
 _TOKEN_RE = re.compile(r"[a-z0-9]+")
 
+_UNSET: Any = object()
+_MODEL: Any = _UNSET
 
-def _embed_one(text: str) -> list[float]:
+
+def _model():
+    global _MODEL
+    if _MODEL is _UNSET:
+        try:
+            from fastembed import TextEmbedding
+            _MODEL = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        except Exception:
+            _MODEL = None
+    return _MODEL
+
+
+def embed_engine() -> str:
+    return "fastembed:bge-small-en-v1.5" if _model() is not None else "hash"
+
+
+# ── feature-hash fallback (offline, deterministic) ─────────────────────────
+def _hash_embed_one(text: str) -> list[float]:
     vec = [0.0] * EMBED_DIM
-    for tok in _TOKEN_RE.findall(text.lower()):
+    for tok in _TOKEN_RE.findall((text or "").lower()):
         h = int(hashlib.md5(tok.encode()).hexdigest(), 16)
         idx = h % EMBED_DIM
         sign = 1.0 if (h >> 8) & 1 else -1.0
@@ -29,7 +50,10 @@ def _embed_one(text: str) -> list[float]:
 
 def embed(texts: list[str]) -> list[list[float]]:
     """Embed a batch of texts into EMBED_DIM-dimensional unit vectors."""
-    return [_embed_one(t) for t in texts]
+    model = _model()
+    if model is None:
+        return [_hash_embed_one(t) for t in texts]
+    return [[float(x) for x in v] for v in model.embed(list(texts))]
 
 
 def to_pgvector(vec: list[float]) -> str:

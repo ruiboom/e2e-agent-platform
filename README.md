@@ -48,20 +48,25 @@ infra/               docker-compose (Postgres+pgvector) + the spine services
 ```bash
 cp .env.example .env          # set ANTHROPIC_API_KEY
 make bootstrap                # pnpm install + uv sync --all-packages
-make infra-up                 # Postgres (pgvector) + cost/feedback services
-make migrate                  # create lineage / prompt / ground tables
 
-# each in its own shell:
-make router                   # model-router  :8789
-make ground                   # ground        :8790
-make build-runtime            # build runtime  :8791
-make eval                     # eval          :8792
-make optimise                 # operate loop  :8793
-make dev                      # console       :3000
-
-for p in 1 2 4 5 7; do bash scripts/seed-phase$p.sh; done   # seed router prompts
+make up                       # ← ONE command: infra + migrations + all 5 services
+                              #   + console + seed prompts (backgrounded; logs → var/log/)
 make verify-all               # prove every milestone M0–M8
+make down                     # stop host services (docker infra stays up)
 ```
+
+Open **http://localhost:3000** and sign in as **Alice (admin)**.
+
+<details><summary>…or start each piece by hand</summary>
+
+```bash
+make infra-up                 # Postgres (pgvector) + Neo4j + cost/feedback
+make migrate                  # create all tables
+# each in its own shell:
+make router ; make ground ; make build-runtime ; make eval ; make optimise ; make dev
+for p in 1 2 4 5 7; do bash scripts/seed-phase$p.sh; done   # seed router prompts
+```
+</details>
 
 ## Tech decisions (locked — see `orginal-docs/00-architecture.md`)
 

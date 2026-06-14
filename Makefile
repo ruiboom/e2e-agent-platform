@@ -1,9 +1,18 @@
-.PHONY: bootstrap infra-up infra-down infra-logs migrate router dev verify-m0 clean
+.PHONY: up down bootstrap infra-up infra-down infra-logs migrate router ground build-runtime eval optimise dev verify-m0 verify-all clean
+
+# ── One-command launch / stop ──
+# Launch the whole suite: infra + migrations + all services + console + seeds.
+up:
+	bash scripts/launch.sh
+
+# Stop the host services (console + FastAPI). Docker infra stays up.
+down:
+	bash scripts/stop.sh
 
 # One-shot install for both workspaces (pnpm + uv).
 bootstrap:
 	pnpm install
-	uv sync
+	uv sync --all-packages
 
 # Bring up Postgres (pgvector) + the observability spine.
 infra-up:

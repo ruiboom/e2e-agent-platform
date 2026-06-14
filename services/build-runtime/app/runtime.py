@@ -31,8 +31,15 @@ def _lin() -> LineageClient:
     return _lineage
 
 
+VALID_MODES = {"vector", "lexical", "hybrid", "graph", "graph_hybrid"}
+
+
 def create_agent_version(
-    project_id: str, system_prompt_artifact_id: str, kb_release_artifact_id: str
+    project_id: str,
+    system_prompt_artifact_id: str,
+    kb_release_artifact_id: str,
+    retrieval_strategy: str = "vector",
+    build_paradigm: str = "code",
 ) -> dict[str, Any]:
     sp = _lin().get_artifact(system_prompt_artifact_id)
     kbr = _lin().get_artifact(kb_release_artifact_id)
@@ -40,15 +47,17 @@ def create_agent_version(
         raise ValueError("system_prompt_artifact_id is not a system_prompt artifact")
     if kbr is None or kbr.type != "kb_release":
         raise ValueError("kb_release_artifact_id is not a kb_release artifact")
+    if retrieval_strategy not in VALID_MODES:
+        raise ValueError(f"unsupported retrieval_strategy '{retrieval_strategy}'")
     release_key = kbr.payload.get("release_key")
 
     artifact = _lin().create_artifact(
         project_id=project_id,
         type="agent_version",
         payload={
-            "build_paradigm": "code",
+            "build_paradigm": build_paradigm,
             "runtime": "rag-v1",
-            "retrieval_strategy": "vector",
+            "retrieval_strategy": retrieval_strategy,
             "release_key": release_key,
             "kb_release_artifact_id": kb_release_artifact_id,
             "system_prompt_artifact_id": system_prompt_artifact_id,
@@ -66,14 +75,15 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
         raise ValueError("agent_version_id is not an agent_version artifact")
     project_id = av.project_id
     release_key = av.payload["release_key"]
+    mode = av.payload.get("retrieval_strategy", "vector")
     sp = _lin().get_artifact(av.payload["system_prompt_artifact_id"])
     system_prompt = (sp.payload.get("text") if sp else "") or ""
 
     with httpx.Client(timeout=60.0) as client:
-        # retrieve
+        # retrieve (mode chosen per agent_version)
         r = client.post(
             f"{GROUND_URL}/v1/retrieve",
-            json={"project_id": project_id, "release_key": release_key, "query": question, "k": k},
+            json={"project_id": project_id, "release_key": release_key, "query": question, "k": k, "mode": mode},
         )
         r.raise_for_status()
         chunks = r.json()["chunks"]
@@ -101,6 +111,7 @@ def chat(agent_version_id: str, question: str, k: int = 4) -> dict[str, Any]:
     }
     return {
         "answer": gen["text"],
+        "retrieval_mode": mode,
         "provenance": provenance,
         "citations": [
             {"item_id": c["item_id"], "chunk_id": c["chunk_id"], "score": c["score"], "heading_path": c["heading_path"]}

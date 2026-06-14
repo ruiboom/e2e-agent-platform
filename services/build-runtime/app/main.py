@@ -19,6 +19,8 @@ class AgentVersionRequest(BaseModel):
     project_id: str
     system_prompt_artifact_id: str
     kb_release_artifact_id: str
+    retrieval_strategy: str = "vector"
+    build_paradigm: str = "code"
 
 
 class ChatRequest(BaseModel):
@@ -36,7 +38,8 @@ def healthz() -> dict[str, str]:
 def agent_version(req: AgentVersionRequest) -> dict:
     try:
         return runtime.create_agent_version(
-            req.project_id, req.system_prompt_artifact_id, req.kb_release_artifact_id
+            req.project_id, req.system_prompt_artifact_id, req.kb_release_artifact_id,
+            req.retrieval_strategy, req.build_paradigm,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -595,6 +595,8 @@ version = "0.0.0"
 source = { virtual = "services/ground" }
 dependencies = [
     { name = "fastapi" },
+    { name = "governance" },
+    { name = "httpx" },
     { name = "lineage" },
     { name = "providers" },
     { name = "psycopg", extra = ["binary"] },
@@ -607,6 +609,8 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
+    { name = "governance", editable = "py/governance" },
+    { name = "httpx", specifier = ">=0.24" },
     { name = "lineage", editable = "py/lineage" },
     { name = "providers", editable = "py/providers" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },

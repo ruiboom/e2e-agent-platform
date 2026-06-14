@@ -28,6 +28,10 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+  // Retrieval strategy + paradigm come from the ADR when present (Phase 2/3).
+  const adr = latest("adr");
+  const retrieval_strategy = (adr?.payload.retrievalStrategy as string) ?? "vector";
+  const build_paradigm = (adr?.payload.buildParadigm as string) ?? "code";
 
   const res = await fetch(`${RUNTIME}/v1/agent-version`, {
     method: "POST",
@@ -36,6 +40,8 @@ export async function POST(req: Request) {
       project_id: projectId,
       system_prompt_artifact_id: sp.id,
       kb_release_artifact_id: kbr.id,
+      retrieval_strategy,
+      build_paradigm,
     }),
   });
   const data = await res.json().catch(() => ({ error: "non-JSON from build-runtime" }));

@@ -10,8 +10,10 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pydantic>=2.8",
     "python-dotenv>=1.0",
+    "httpx>=0.24",
     "lineage",
     "providers",
+    "governance",
 ]
 
 # Virtual workspace member (see model-router): run via
@@ -22,3 +24,4 @@ package = false
 [tool.uv.sources]
 lineage = { workspace = true }
 providers = { workspace = true }
+governance = { workspace = true }

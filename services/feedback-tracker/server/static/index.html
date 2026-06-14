@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Feedback Tracker</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">💬</div>
+    <div>
+      <h1>User Feedback Tracker</h1>
+      <div class="sub"><span class="live-dot" id="liveDot"></span><span id="liveText">connecting…</span></div>
+    </div>
+  </div>
+  <div class="controls">
+    <input class="search-box" id="search" type="search" placeholder="Search comments…" autocomplete="off">
+    <div class="pillbar" id="rangeBar">
+      <button data-range="24h">24h</button>
+      <button data-range="7d" class="active">7d</button>
+      <button data-range="30d">30d</button>
+      <button data-range="90d">90d</button>
+      <button data-range="all">All</button>
+    </div>
+    <div class="pillbar" id="groupBar">
+      <button data-group="sentiment" class="active">Sentiment</button>
+      <button data-group="app">App</button>
+      <button data-group="kind">Kind</button>
+    </div>
+    <div class="dropdown" id="appFilter">
+      <button class="dd-btn">Apps <span class="dd-count"></span> ▾</button>
+      <div class="dd-menu"></div>
+    </div>
+    <div class="dropdown" id="sentimentFilter">
+      <button class="dd-btn">Sentiment <span class="dd-count"></span> ▾</button>
+      <div class="dd-menu"></div>
+    </div>
+    <div class="dropdown" id="kindFilter">
+      <button class="dd-btn">Kind <span class="dd-count"></span> ▾</button>
+      <div class="dd-menu"></div>
+    </div>
+    <div class="dropdown" id="statusFilter">
+      <button class="dd-btn">Status <span class="dd-count"></span> ▾</button>
+      <div class="dd-menu"></div>
+    </div>
+    <a class="dd-btn" href="/admin.html" style="text-decoration:none">Admin</a>
+  </div>
+</header>
+
+<main>
+  <section class="cards" id="cards">
+    <div class="card"><div class="card-label">Today</div><div class="card-value" id="cToday">–</div><div class="card-delta" id="cTodayDelta"></div></div>
+    <div class="card"><div class="card-label">Last 7 days</div><div class="card-value" id="c7d">–</div><div class="card-delta" id="c7dDelta"></div></div>
+    <div class="card"><div class="card-label">Last 30 days</div><div class="card-value" id="c30d">–</div><div class="card-delta" id="c30dDelta"></div></div>
+    <div class="card"><div class="card-label">NPS · 30d</div><div class="card-value" id="cNps">–</div><div class="card-delta muted" id="cNpsSub"></div></div>
+    <div class="card"><div class="card-label">CSAT · 30d</div><div class="card-value" id="cCsat">–</div><div class="card-delta muted" id="cCsatSub"></div></div>
+    <div class="card"><div class="card-label">Needs triage</div><div class="card-value" id="cUntriaged">–</div><div class="card-delta muted" id="cUntriagedSub">status “new”</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Feedback over time</h2>
+      <span class="panel-sub" id="tsSub"></span>
+    </div>
+    <div class="chart-tall"><canvas id="tsChart"></canvas></div>
+  </section>
+
+  <section class="grid3">
+    <div class="panel">
+      <div class="panel-head"><h2>By sentiment</h2></div>
+      <div class="chart-donut"><canvas id="sentimentDonut"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>By app</h2></div>
+      <div class="chart-donut"><canvas id="appDonut"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>By kind</h2></div>
+      <div class="chart-donut"><canvas id="kindDonut"></canvas></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head explorer-head">
+      <h2>Explorer</h2>
+      <span class="panel-sub" id="explorerSub">individual feedback · newest first</span>
+    </div>
+    <div class="feed-list" id="feedList"></div>
+    <div class="pager">
+      <button class="btn btn-quiet btn-sm" id="prevPage">← Newer</button>
+      <span id="pagerInfo"></span>
+      <button class="btn btn-quiet btn-sm" id="nextPage">Older →</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Breakdown</h2><span class="panel-sub">app × kind, selected range</span></div>
+    <div class="table-wrap">
+      <table id="breakdownTable">
+        <thead><tr><th>App</th><th>Kind</th><th class="r">Count</th><th class="r">Positive</th><th class="r">Negative</th><th class="r">Avg rating</th><th class="r">Share</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>feedback-tracker · auto-refreshes every 5s · all times UTC</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

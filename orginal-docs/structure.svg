@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 230" width="680" height="230" role="img" aria-label="Four super-apps on one shared spine">
+<style>
+  text{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  .t,.th{font-size:14px;font-weight:500;fill:#1f2430;}
+  .ts{font-size:12px;font-weight:400;fill:#3c4250;}
+  .c-purple rect{fill:#EEEDFE;stroke:#534AB7;stroke-width:1.5;}
+  .c-gray rect{fill:#F1F2F4;stroke:#5F6368;stroke-width:1.5;}
+</style>
+<defs><marker id="aS" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0" y="0" width="680" height="230" fill="#ffffff"/>
+<text x="340" y="22" text-anchor="middle" class="th">Four super-apps on one shared spine</text>
+
+<g class="c-purple"><rect x="16" y="40" width="150" height="84" rx="10"/><text x="91" y="66" text-anchor="middle" class="t">Agent platform</text><text x="91" y="86" text-anchor="middle" class="ts">0 &#8594; live &#8594; improve</text><text x="91" y="104" text-anchor="middle" class="ts">ex-Converse + Press</text></g>
+<g class="c-purple"><rect x="186" y="40" width="150" height="84" rx="10"/><text x="261" y="66" text-anchor="middle" class="t">Resonate</text><text x="261" y="86" text-anchor="middle" class="ts">creative studio</text><text x="261" y="104" text-anchor="middle" class="ts">&amp; arcade</text></g>
+<g class="c-purple"><rect x="356" y="40" width="150" height="84" rx="10"/><text x="431" y="66" text-anchor="middle" class="t">Mission Control</text><text x="431" y="86" text-anchor="middle" class="ts">personal ops</text><text x="431" y="104" text-anchor="middle" class="ts">&amp; money</text></g>
+<g class="c-purple"><rect x="526" y="40" width="150" height="84" rx="10"/><text x="601" y="66" text-anchor="middle" class="t">Academy</text><text x="601" y="86" text-anchor="middle" class="ts">courses +</text><text x="601" y="104" text-anchor="middle" class="ts">enablement</text></g>
+
+<line x1="91" y1="124" x2="91" y2="160" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aS)"/>
+<line x1="261" y1="124" x2="261" y2="160" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aS)"/>
+<line x1="431" y1="124" x2="431" y2="160" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aS)"/>
+<line x1="601" y1="124" x2="601" y2="160" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aS)"/>
+
+<g class="c-gray"><rect x="16" y="160" width="660" height="46" rx="10"/><text x="28" y="182" class="t">Shared spine</text><text x="28" y="200" class="ts">DEMO_LAUNCHER &#183; cost-tracker &#183; feedback-tracker &#183; lloyds-design</text></g>
+</svg>

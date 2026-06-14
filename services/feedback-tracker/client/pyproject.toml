@@ -1,0 +1,13 @@
+[project]
+name = "feedback-tracker-client"
+version = "0.1.0"
+description = "Fire-and-forget user-feedback submission for apps"
+requires-python = ">=3.9"
+dependencies = ["httpx>=0.24"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["feedback_tracker*"]

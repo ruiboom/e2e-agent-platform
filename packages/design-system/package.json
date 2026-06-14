@@ -1,0 +1,25 @@
+{
+  "name": "@agent-platform/design-system",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./tokens.css": "./tokens.css",
+    "./tailwind-preset": "./tailwind-preset.mjs"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "tailwindcss": ">=3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0"
+  }
+}

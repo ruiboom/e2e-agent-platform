@@ -1,0 +1,28 @@
+# Node / TS
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.ruff_cache/
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.local
+*.local
+
+# Data / SQLite (spine services write here in dev)
+*.db
+*.db-wal
+*.db-shm
+var/
+
+# OS
+.DS_Store

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 334" width="680" height="334" role="img" aria-label="Agent platform build architecture, four layers">
+<style>
+  text{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  .t,.th{font-size:14px;font-weight:500;fill:#1f2430;}
+  .ts{font-size:12px;font-weight:400;fill:#3c4250;}
+  .c-blue rect{fill:#E8F0FE;stroke:#1A5FB4;stroke-width:1.5;}
+  .c-purple rect{fill:#EEEDFE;stroke:#534AB7;stroke-width:1.5;}
+  .c-teal rect{fill:#E1F5EE;stroke:#0F6E56;stroke-width:1.5;}
+  .c-gray rect{fill:#F1F2F4;stroke:#5F6368;stroke-width:1.5;}
+</style>
+<defs><marker id="aA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0" y="0" width="680" height="334" fill="#ffffff"/>
+<text x="340" y="20" text-anchor="middle" class="th">Build architecture &#8212; four layers</text>
+
+<text x="16" y="36" class="ts">Console</text>
+<g class="c-blue"><rect x="16" y="40" width="648" height="40" rx="10"/><text x="28" y="64" class="t">Console / shell (Next.js)</text><text x="250" y="64" class="ts">one host for every stage UI + launcher (ex-DEMO_LAUNCHER)</text></g>
+
+<text x="16" y="98" class="ts">Stage modules (4 phases)</text>
+<g class="c-purple"><rect x="16" y="102" width="150" height="52" rx="10"/><text x="91" y="126" text-anchor="middle" class="t">Shape &amp; plan</text><text x="91" y="144" text-anchor="middle" class="ts">discover&#8594;plan</text></g>
+<g class="c-purple"><rect x="186" y="102" width="150" height="52" rx="10"/><text x="261" y="126" text-anchor="middle" class="t">Make</text><text x="261" y="144" text-anchor="middle" class="ts">ground &#183; build</text></g>
+<g class="c-purple"><rect x="356" y="102" width="150" height="52" rx="10"/><text x="431" y="126" text-anchor="middle" class="t">Prove</text><text x="431" y="144" text-anchor="middle" class="ts">test &#183; evaluate</text></g>
+<g class="c-purple"><rect x="526" y="102" width="150" height="52" rx="10"/><text x="601" y="126" text-anchor="middle" class="t">Run &amp; improve</text><text x="601" y="144" text-anchor="middle" class="ts">deploy &#183; operate</text></g>
+
+<text x="16" y="172" class="ts">Shared services</text>
+<g class="c-teal"><rect x="16" y="176" width="150" height="52" rx="10"/><text x="91" y="200" text-anchor="middle" class="t">Model router</text><text x="91" y="218" text-anchor="middle" class="ts">+ prompt registry</text></g>
+<g class="c-teal"><rect x="186" y="176" width="150" height="52" rx="10"/><text x="261" y="200" text-anchor="middle" class="t">Lineage</text><text x="261" y="218" text-anchor="middle" class="ts">+ project store</text></g>
+<g class="c-teal"><rect x="356" y="176" width="150" height="52" rx="10"/><text x="431" y="200" text-anchor="middle" class="t">Governance</text><text x="431" y="218" text-anchor="middle" class="ts">&amp; policy</text></g>
+<g class="c-teal"><rect x="526" y="176" width="150" height="52" rx="10"/><text x="601" y="200" text-anchor="middle" class="t">Observability</text><text x="601" y="218" text-anchor="middle" class="ts">cost &#183; feedback</text></g>
+
+<text x="16" y="246" class="ts">Data &amp; infra</text>
+<g class="c-gray"><rect x="16" y="250" width="150" height="52" rx="10"/><text x="91" y="274" text-anchor="middle" class="t">Postgres</text><text x="91" y="292" text-anchor="middle" class="ts">+ pgvector</text></g>
+<g class="c-gray"><rect x="186" y="250" width="150" height="52" rx="10"/><text x="261" y="274" text-anchor="middle" class="t">Neo4j / AGE</text><text x="261" y="292" text-anchor="middle" class="ts">graph</text></g>
+<g class="c-gray"><rect x="356" y="250" width="150" height="52" rx="10"/><text x="431" y="274" text-anchor="middle" class="t">Object store</text><text x="431" y="292" text-anchor="middle" class="ts">S3</text></g>
+<g class="c-gray"><rect x="526" y="250" width="150" height="52" rx="10"/><text x="601" y="274" text-anchor="middle" class="t">Job queue</text><text x="601" y="292" text-anchor="middle" class="ts">+ webhooks</text></g>
+
+<line x1="340" y1="80" x2="340" y2="102" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aA)"/>
+<line x1="340" y1="154" x2="340" y2="176" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aA)"/>
+<line x1="340" y1="228" x2="340" y2="250" stroke="#9aa0a6" stroke-width="1.5" marker-end="url(#aA)"/>
+</svg>

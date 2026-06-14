@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Cost Tracker</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img class="logo" src="/lloyds-horse.png" alt="Lloyds">
+    <div>
+      <h1>LLM Cost Tracker</h1>
+      <div class="sub"><span class="live-dot" id="liveDot"></span><span id="liveText">connecting…</span></div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="pillbar" id="rangeBar">
+      <button data-range="24h">24h</button>
+      <button data-range="7d" class="active">7d</button>
+      <button data-range="30d">30d</button>
+      <button data-range="90d">90d</button>
+      <button data-range="all">All</button>
+    </div>
+    <div class="pillbar" id="groupBar">
+      <button data-group="app" class="active">By app</button>
+      <button data-group="model">By model</button>
+    </div>
+    <div class="dropdown" id="appFilter">
+      <button class="dd-btn">Apps <span class="dd-count"></span> ▾</button>
+      <div class="dd-menu"></div>
+    </div>
+    <div class="dropdown" id="modelFilter">
+      <button class="dd-btn">Models <span class="dd-count"></span> ▾</button>
+      <div class="dd-menu"></div>
+    </div>
+    <a class="dd-btn" href="/admin.html" style="text-decoration:none">Admin</a>
+  </div>
+</header>
+
+<main>
+  <section class="cards" id="cards">
+    <div class="card"><div class="card-label">Today</div><div class="card-value" id="cToday">–</div><div class="card-delta" id="cTodayDelta"></div></div>
+    <div class="card"><div class="card-label">Last 7 days</div><div class="card-value" id="c7d">–</div><div class="card-delta" id="c7dDelta"></div></div>
+    <div class="card"><div class="card-label">Last 30 days</div><div class="card-value" id="c30d">–</div><div class="card-delta" id="c30dDelta"></div></div>
+    <div class="card"><div class="card-label">Burn rate</div><div class="card-value" id="cBurn">–</div><div class="card-delta muted" id="cBurnSub">last 60 min</div></div>
+    <div class="card"><div class="card-label">Turns today</div><div class="card-value" id="cEvents">–</div><div class="card-delta muted" id="cTokens"></div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Cost over time</h2>
+      <span class="panel-sub" id="tsSub"></span>
+    </div>
+    <div class="chart-tall"><canvas id="tsChart"></canvas></div>
+  </section>
+
+  <section class="grid3">
+    <div class="panel">
+      <div class="panel-head"><h2>Cost by app</h2></div>
+      <div class="chart-donut"><canvas id="appDonut"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Cost by model</h2></div>
+      <div class="chart-donut"><canvas id="modelDonut"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Cumulative spend</h2></div>
+      <div class="chart-donut"><canvas id="cumChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <div class="panel-head"><h2>Breakdown</h2><span class="panel-sub">app × model, selected range</span></div>
+      <div class="table-wrap">
+        <table id="breakdownTable">
+          <thead><tr><th>App</th><th>Model</th><th class="r">Turns</th><th class="r">Tokens in</th><th class="r">Tokens out</th><th class="r">Cost</th><th class="r">Share</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Live feed</h2><span class="panel-sub">most recent turns</span></div>
+      <div class="table-wrap">
+        <table id="recentTable">
+          <thead><tr><th>When</th><th>App</th><th>Model</th><th class="r">In</th><th class="r">Out</th><th class="r">Cost</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>cost-tracker · auto-refreshes every 5s · all times UTC</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>

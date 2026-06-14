@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · User Feedback Tracker</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">💬</div>
+    <div>
+      <h1>Feedback Tracker Admin</h1>
+      <div class="sub">app registry · publishable &amp; secret keys</div>
+    </div>
+  </div>
+  <div class="controls">
+    <a class="dd-btn" href="/" style="text-decoration:none">← Dashboard</a>
+  </div>
+</header>
+
+<main>
+  <section class="panel" id="adminTokenPanel" style="display:none">
+    <div class="panel-head"><h2>Admin access</h2></div>
+    <div class="notice warn" style="margin-bottom:12px">
+      This collector requires an admin token (<code>FEEDBACK_TRACKER_ADMIN_TOKEN</code>).
+    </div>
+    <div class="form-row">
+      <input class="input" type="password" id="adminTokenInput" placeholder="admin token" style="min-width:280px">
+      <button class="btn btn-primary" id="adminTokenSave">Unlock</button>
+    </div>
+  </section>
+
+  <section class="panel" id="authStatusPanel">
+    <div class="panel-head"><h2>Ingest authentication</h2></div>
+    <div id="authStatusBody">Loading…</div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Apps</h2>
+      <span class="panel-sub">registered apps and every app seen in stored feedback</span>
+      <span style="flex:1"></span>
+      <button class="btn btn-quiet btn-sm" id="refreshBtn">Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table id="appsTable">
+        <thead><tr>
+          <th>App</th><th>Status</th><th class="r">Items</th><th>Last seen</th>
+          <th>Publishable key</th><th>Secret token</th><th>Note</th><th>Actions</th>
+        </tr></thead>
+        <tbody><tr><td colspan="8">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Add app</h2>
+      <span class="panel-sub">registers the app and generates its publishable + secret keys</span>
+    </div>
+    <div class="form-row">
+      <input class="input" id="newAppName" placeholder="app name, e.g. support-bot" style="min-width:240px">
+      <input class="input" id="newAppNote" placeholder="note (optional)" style="min-width:280px">
+      <button class="btn btn-primary" id="addAppBtn">Add app</button>
+    </div>
+    <div id="newTokenReveal"></div>
+  </section>
+</main>
+
+<footer>feedback-tracker admin · keys are stored on the collector and shown only to admin users · all times UTC</footer>
+
+<script src="/admin.js"></script>
+</body>
+</html>

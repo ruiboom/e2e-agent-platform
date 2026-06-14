@@ -1,0 +1,9 @@
+/* Lloyds design tokens (CSS variables + base element styles + font imports). */
+@import "@agent-platform/design-system/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Keep the tokens.css body styles as the canonical look; Tailwind's preflight
+   resets are layered under them. */

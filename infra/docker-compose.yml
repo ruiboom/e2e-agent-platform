@@ -1,0 +1,56 @@
+name: agent-platform
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: agent_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      # Host 5433 → container 5432, to avoid clashing with a host Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d agent_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Observability spine — copied verbatim from ../cost-tracker in W2; runs on SQLite.
+  cost-tracker:
+    build:
+      context: ../services/cost-tracker
+    environment:
+      COST_TRACKER_DB: /data/cost_tracker.db
+    ports:
+      - "8787:8787"
+    volumes:
+      - cost_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8787/v1/meta')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  feedback-tracker:
+    build:
+      context: ../services/feedback-tracker
+    environment:
+      FEEDBACK_TRACKER_DB: /data/feedback_tracker.db
+    ports:
+      - "8788:8788"
+    volumes:
+      - feedback_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8788/v1/meta')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+  cost_data:
+  feedback_data:

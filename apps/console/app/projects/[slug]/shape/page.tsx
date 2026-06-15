@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@agent-platform/design-system";
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@agent-platform/design-system";
 
 import { lineage } from "@/lib/lineage";
 import { ShapePanel } from "@/components/ShapePanel";
@@ -44,6 +44,20 @@ export default async function ShapePage({ params }: { params: Promise<{ slug: st
       </div>
 
       <ShapePanel projectId={project.id} slug={slug} state={state} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Knowledge base</CardTitle>
+          <CardDescription>
+            Independent of Shape — point at sources and ingest first, so the KB is ready before Build.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href={`/projects/${slug}/ground`} className="no-underline">
+            <Button size="sm" variant="secondary">Ingest sources / cut a release →</Button>
+          </Link>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

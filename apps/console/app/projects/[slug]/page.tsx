@@ -67,6 +67,9 @@ export default async function ProjectDetail({
           <Link href={`/projects/${project.slug}/architect`} className="no-underline">
             <Button size="sm" variant="secondary">Architecture</Button>
           </Link>
+          <Link href={`/projects/${project.slug}/ground`} className="no-underline">
+            <Button size="sm" variant="secondary">Knowledge</Button>
+          </Link>
           <Link href={`/projects/${project.slug}/chat`} className="no-underline">
             <Button size="sm" variant="secondary">Chat</Button>
           </Link>

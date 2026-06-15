@@ -29,7 +29,7 @@ self-improving agent. (Re-seed any time with `make example`.)
 | **Architect** | Outputs → `adr` | hybrid retrieval + pgvector & neo4j projections, web channel |
 | **Plan** | Outputs → `plan` | epics → stories → tasks + a CSV |
 | **Gate 1** | Outputs → `gate1` | the go decision (proposition signed off + ADR) |
-| **Ground** | Lineage → `kb_release` | the pinned release (5 approved docs, graph-enriched) |
+| **Ground** | Project → **Knowledge** (`/ground`) | point at sources → ingest → approve (four-eyes) → cut a release; the pinned `kb_release` (5 approved docs, graph-enriched) |
 | **Build** | Lineage → `agent_version` | paradigm, retrieval strategy, release key |
 | **Test** | Lineage → `test_suite` | personas + tagged cases |
 | **Evaluate** | Lineage → `eval_run`, `gate2` | quality / latency / cost + per-persona rollup |
@@ -45,6 +45,10 @@ self-improving agent. (Re-seed any time with `make example`.)
 - **Shape & plan** on a **new** project (Projects → New) → run Discover → Define →
   Sign off → (Specify) → Architect → Plan → check **Gate 1**, watching each
   **Output** appear.
+- **Knowledge** (project → **Knowledge**) → **point at a source** (paste text, a web
+  URL, an RSS feed, or a GitHub repo) and **Ingest**. It lands as a *submitted*
+  revision; **approve** it as a different user (four-eyes), then **cut a release**.
+  You can do this **first**, before the rest of the flow — the KB is independent.
 - **Academy** → pick a **role path** (e.g. *Conversation Designer*) and mark stages
   complete.
 

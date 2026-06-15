@@ -81,10 +81,13 @@ export function ShapePanel({ projectId, slug, state }: { projectId: string; slug
           )}
         </div>
 
-        {/* Specify (link) */}
+        {/* Specify (its own page) */}
         <div className="flex items-center gap-2">
           <Badge tone={state.hasScope ? "success" : "neutral"}>3 · Specify</Badge>
-          {!state.hasScope && <span className="text-[13px] text-ink-3">use the Specify page (after sign-off)</span>}
+          <Link href={`/projects/${slug}/specify`} className="no-underline">
+            <Button size="sm" variant="secondary">{state.hasScope ? "Re-run Specify →" : "Open Specify →"}</Button>
+          </Link>
+          {!signed && <span className="text-[13px] text-ink-3">tip: sign off Define first to link the thread</span>}
         </div>
 
         {/* Architect — editable agent-graph canvas */}

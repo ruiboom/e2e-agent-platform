@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input } from "@agent-platform/design-system";
@@ -13,7 +14,7 @@ interface State {
   gate1Pass: boolean;
 }
 
-export function ShapePanel({ projectId, state }: { projectId: string; state: State }) {
+export function ShapePanel({ projectId, slug, state }: { projectId: string; slug: string; state: State }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -86,30 +87,17 @@ export function ShapePanel({ projectId, state }: { projectId: string; state: Sta
           {!state.hasScope && <span className="text-[13px] text-ink-3">use the Specify page (after sign-off)</span>}
         </div>
 
-        {/* Architect */}
+        {/* Architect — editable agent-graph canvas */}
         <div className="flex items-center gap-2">
           <Badge tone={state.hasAdr ? "success" : "neutral"}>4 · Architect</Badge>
-          {state.hasScope && !state.hasAdr && (
-            <Button
-              size="sm"
-              disabled={busy}
-              onClick={() =>
-                act({
-                  action: "architect",
-                  adr: {
-                    buildParadigm: "code",
-                    runtime: "rag-v1",
-                    retrievalStrategy: "vector",
-                    storageProjections: ["pgvector"],
-                    channels: ["web"],
-                    deployTarget: "local",
-                  },
-                })
-              }
-            >
-              Capture ADR (vector / local)
-            </Button>
+          {state.hasScope && (
+            <Link href={`/projects/${slug}/architect`} className="no-underline">
+              <Button size="sm" variant="secondary">
+                {state.hasAdr ? "Edit agent graph →" : "Design agent graph →"}
+              </Button>
+            </Link>
           )}
+          {!state.hasScope && <span className="text-[13px] text-ink-3">after Specify</span>}
         </div>
 
         {/* Plan */}

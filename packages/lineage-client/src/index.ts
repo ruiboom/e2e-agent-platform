@@ -11,10 +11,10 @@
 //   - `parents` is required at write time (may be [] for a genesis artifact).
 import pg from "pg";
 
-import { appendAudit } from "./audit.ts";
+import { appendAudit } from "./audit";
 
-export { appendAudit, verifyAuditChain, auditDigest } from "./audit.ts";
-export type { ChainResult, AuditInput } from "./audit.ts";
+export { appendAudit, verifyAuditChain, auditDigest } from "./audit";
+export type { ChainResult, AuditInput } from "./audit";
 
 export type ArtifactStatus = "draft" | "approved" | "superseded";
 

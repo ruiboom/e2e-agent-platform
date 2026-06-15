@@ -43,7 +43,7 @@ export default async function ShapePage({ params }: { params: Promise<{ slug: st
         <p className="text-ink-2">Discover → Define → Specify → Architect → Plan, gated by Gate 1.</p>
       </div>
 
-      <ShapePanel projectId={project.id} state={state} />
+      <ShapePanel projectId={project.id} slug={slug} state={state} />
 
       <Card>
         <CardHeader>

@@ -11,6 +11,16 @@ LLM **Judge** (`eval.judge`) for faithfulness + helpfulness, and aggregates an
 per-case breakdown, and (for a suite) a **per-persona** rollup.
 
 ### How to use it
+
+**Console** → project → **Evaluate** (`/evaluate`) — the whole Prove flow on one
+page: **Run test suite** (full multi-persona run) or **Quick eval** (default
+questions). Results render inline: pass/fail badge, quality / latency / cost,
+per-persona chips, and a per-case table with the judge's commentary under each
+question. The **Artifacts** card at the bottom exposes the `agent_version`,
+`test_suite` and `eval_run` artifacts — open any of them rendered, or edit the
+suite into a new version and re-run.
+
+**API**
 ```bash
 # quick eval over ad-hoc questions
 curl -X POST localhost:8792/v1/eval -d '{"agent_version_id":"<AVID>",
@@ -35,6 +45,13 @@ The boundary between **Prove** and **Run & improve**. It reads the agent's lates
 `eval_run` and checks it against the project's `pre_deploy_gates`.
 
 ### How to use it
+
+**Console** → **Evaluate** page → **Policy — pre-deploy gates** card: set min
+quality / max latency / max cost and **Save policy** (needs `artifact:approve` —
+separation of duties). Then **Check Gate 2** shows pass/blocked with the failing
+reasons and the risk tier.
+
+**API**
 ```bash
 # set the project's gates (any of quality/latency_ms/cost_usd)
 curl -X POST localhost:8792/v1/policy \

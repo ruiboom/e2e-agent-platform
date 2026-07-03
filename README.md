@@ -22,7 +22,9 @@ the *how*; the *what/why* lives in [`orginal-docs/`](orginal-docs/).
 ## Layout
 
 ```
-apps/console/        Next.js (App Router) shell — projects, specify, chat, lineage/cost/feedback
+apps/console/        Next.js (App Router) shell — projects + every stage UI (shape, specify,
+                     architect, ground, chat, evaluate, operate); every artifact viewable
+                     (rendered markdown / JSON) and editable as a new lineage version
 services/
   model-router/      FastAPI — wraps LiteLLM + prompt/version registry; emits cost/latency
   ground/            FastAPI — canonical store + vector RAG (pgvector); pins kb_release

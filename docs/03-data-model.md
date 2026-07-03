@@ -23,6 +23,10 @@ artifact_parent(child_id fk, parent_id fk)   -- the lineage DAG
   for `(project, type)`. `payload` is never updated; the only mutation is a status
   transition (`draft → approved → superseded`).
 - *`parents` is required at write time* (may be `[]` for a genesis artifact).
+- *Console edits obey the same rule.* The UI's **Edit** action (`POST
+  /api/artifacts`) never mutates a payload — it appends a new version of the same
+  type, parented on the artifact that was edited, written by the acting user and
+  recorded in the audit chain.
 
 The TS client (`packages/lineage-client`) and the Python client (`py/lineage`)
 implement an **identical contract** — `createProject`, `createArtifact`,

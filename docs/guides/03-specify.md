@@ -14,8 +14,10 @@ These are the inputs the rest of the pipeline builds on: `system_prompt` feeds
 
 ## How to use it
 
-**Console** → project → **Specify** → enter a topic → **Generate spec**. You land
-on the **Lineage** tab showing the three new artifacts.
+**Console** → project → **Specify** → enter a topic → **Generate spec**. The three
+new artifacts appear in the **Outputs** card right on the page — open one to read
+it rendered (markdown-aware), flip to the raw JSON, or **Edit** it into a new
+version (e.g. tighten the system prompt before Build picks it up).
 
 **API**
 ```bash
@@ -35,6 +37,8 @@ curl -b jar -X POST localhost:3000/api/specify \
 ## Tips
 - Re-running Specify creates **new versions** of all three artifacts (immutable
   append) — earlier versions are preserved and can be diffed in the Lineage tab.
+- Hand-editing does the same: **Edit → Save as new version** appends a version
+  parented on the one you edited; nothing is ever overwritten.
 - The generated `system_prompt` is what the **Operate** loop later rewrites when it
   learns from live traffic.
 

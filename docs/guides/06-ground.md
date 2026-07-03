@@ -13,10 +13,24 @@ entity index), and **pins a release** that an agent consumes. Retrieval offers
 The canonical store is the only source of truth; vector/lexical/graph indexes are
 rebuildable projections over it.
 
-## How to use it (API / scripts)
+## How to use it (console)
 
-Ground has no dedicated console page yet — drive it via its API (Chat consumes the
-result). Typical flow:
+**Project → Knowledge** (`/ground`) is the full governed flow on one page:
+
+1. **Point at sources & ingest** — four source tabs: **Paste text** (markdown
+   headings become chunks), **Web page**, **RSS feed**, **GitHub repo**
+   (`owner/name`, optional paths; defaults to the README). Set *Submitted by*
+   and **Ingest** — each document lands as an immutable, safety-scanned revision
+   in the **submitted** state.
+2. **Review & approve** — every item shows its state, revision, chunk count,
+   submitter and scan findings. **Expand an item to read the full document
+   rendered** (markdown), and **Edit document** to re-ingest it as the next
+   revision — which goes back through four-eyes. Approving needs
+   `artifact:approve` *and a different user than the submitter*.
+3. **Cut a release** — pins the latest **approved** revision of every item and
+   enriches the graph. The `release_key` is what Build consumes.
+
+## How to use it (API / scripts)
 
 ```bash
 # 1. ingest (submitter = "bob")
@@ -26,8 +40,9 @@ curl -X POST localhost:8790/v1/ingest -H 'Content-Type: application/json' -d '{
            "body":"# Overdraft fees\n\nWe charge 39.9% EAR variable..."}]}'
 # → { items:[{ item_id, revision_id, state:"submitted", chunks }] }
 
-# 1b. or pull from a connector (inline content or a live url)
+# 1b. or pull from a connector (inline content, a live url, or a GitHub repo)
 curl -X POST localhost:8790/v1/connect -d '{"project_id":"<PID>","kind":"rss","content":"<rss>…</rss>"}'
+curl -X POST localhost:8790/v1/connect -d '{"project_id":"<PID>","kind":"github","url":"octocat/Hello-World"}'
 
 # 2. four-eyes approve (approver MUST differ from submitter)
 curl -X POST localhost:8790/v1/approve -d '{"revision_id":"<RID>","approver":"alice"}'
@@ -68,6 +83,10 @@ Each chunk comes back with its provenance: `{item_id, revision_id, chunk_id}`.
 - A release with no approved revisions is empty → retrieval returns nothing → chat
   answers carry null provenance. Approve before releasing.
 - Re-ingesting unchanged content is a no-op (content-hash gate).
+- Editing a document (console **Edit document**, or re-ingesting the same `uri`
+  with a new body) creates the **next revision** of the same item — the old
+  revision stays immutable, and a release keeps serving whatever it pinned until
+  you cut a new one.
 
 ## Deferred
 Production Ground is the full KMS: state-machine governance, schema-registry,

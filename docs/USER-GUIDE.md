@@ -12,11 +12,12 @@ self-improving agent. (Re-seed any time with `make example`.)
 1. **Academy** (top nav) → **Open the example project →**. You land on
    `overdraft-assistant`.
 2. **Lineage tab** → you see the full golden thread (16 artifacts). **Click any
-   artifact** to read its content — the opportunity, the proposition, the scope,
-   the ADR, the plan, the agent_version, the eval_run, the deployment…
+   artifact** to read it **rendered** (markdown and all) — the opportunity, the
+   proposition, the scope, the ADR, the plan, the agent_version, the eval_run,
+   the deployment… Flip to the raw **JSON**, or hit **Edit** to change it.
 3. **Chat** (button at the top) → ask *"What interest do you charge on an arranged
-   overdraft?"*. The answer comes back grounded, with **provenance chips**
-   (release / agent version / item / revision / chunk).
+   overdraft?"*. The answer comes back grounded and markdown-rendered, with
+   **provenance chips** (release / agent version / item / revision / chunk).
 4. **Shape & plan** → see every shaping stage's output rendered inline.
 
 ## Stage by stage (in the example)
@@ -29,12 +30,32 @@ self-improving agent. (Re-seed any time with `make example`.)
 | **Architect** | Outputs → `adr` | hybrid retrieval + pgvector & neo4j projections, web channel |
 | **Plan** | Outputs → `plan` | epics → stories → tasks + a CSV |
 | **Gate 1** | Outputs → `gate1` | the go decision (proposition signed off + ADR) |
-| **Ground** | Project → **Knowledge** (`/ground`) | point at sources → ingest → approve (four-eyes) → cut a release; the pinned `kb_release` (5 approved docs, graph-enriched) |
+| **Ground** | Project → **Knowledge** (`/ground`) | point at sources → ingest → approve (four-eyes) → cut a release; expand any document to read it rendered or **edit it into a new revision**; the pinned `kb_release` (5 approved docs, graph-enriched) |
 | **Build** | Lineage → `agent_version` | paradigm, retrieval strategy, release key |
-| **Test** | Lineage → `test_suite` | personas + tagged cases |
-| **Evaluate** | Lineage → `eval_run`, `gate2` | quality / latency / cost + per-persona rollup |
+| **Test** | Project → **Evaluate** (`/evaluate`) | generate / regenerate the multi-persona suite; read or edit it in the **Artifacts** card |
+| **Evaluate** | Project → **Evaluate** (`/evaluate`) | run the suite or a quick eval; quality / latency / cost + per-persona rollup + per-case judge commentary; set the policy; check **Gate 2** |
 | **Deploy** | Lineage → `deployment` | target / channels + guardrail policy |
-| **Operate** | Lineage → `system_prompt v2` | the auto-proposed improvement (the loop closing) |
+| **Operate** | Project → **Operate** (`/operate`) | log/weak-turn badges; **Run Operate**; each proposal opens to the full proposed prompt + rationale (editable) |
+
+## View & edit any artifact
+
+Every artifact, at every step, is **viewable and editable** in place:
+
+- **Open it anywhere it appears** — the Lineage tab, Shape & plan → Outputs,
+  Specify → Outputs, Evaluate → Artifacts, Operate → Improvement proposals. Each
+  one opens with three views: **Rendered** (markdown-aware — prompts, outlines
+  and plans read like documents), raw **JSON**, and **Edit**.
+- **Edit is field-by-field** — text fields edit as plain text (markdown welcome);
+  structured fields edit as JSON and are validated before save.
+- **Saving never overwrites.** The lineage is append-only, so saving creates a
+  **new version** with the one you edited as its parent — the golden thread keeps
+  every prior version, and the edit lands in the audit chain like any other
+  write. Downstream stages (Build, Evaluate) pick up the latest version.
+- **Knowledge documents too** — on the **Knowledge** page, expand any item to
+  read the full document rendered; **Edit document** re-ingests it as a new
+  revision, which goes back through four-eyes approval before the next release.
+- Editing needs `artifact:write` (contributor, steward, admin) — viewers can
+  still read everything.
 
 ## Try the controls yourself
 
@@ -49,6 +70,12 @@ self-improving agent. (Re-seed any time with `make example`.)
   URL, an RSS feed, or a GitHub repo) and **Ingest**. It lands as a *submitted*
   revision; **approve** it as a different user (four-eyes), then **cut a release**.
   You can do this **first**, before the rest of the flow — the KB is independent.
+- **Evaluate** (project → **Evaluate**) → open the `test_suite` in the Artifacts
+  card, **Edit** a case's expected answer, save (a new suite version appears),
+  then **Run test suite** again and compare the two `eval_run`s.
+- **Operate** (project → **Operate**) → after some chat traffic, **Run Operate**;
+  open the proposal, tweak the proposed prompt with **Edit**, then rebuild on the
+  Chat page to adopt it.
 - **Academy** → pick a **role path** (e.g. *Conversation Designer*) and mark stages
   complete.
 

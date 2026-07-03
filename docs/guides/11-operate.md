@@ -19,6 +19,15 @@ the improved prompt — the loop is closed.
 
 ## How to use it
 
+**Console** → project → **Operate** (`/operate`). The header badges show the
+agent version, deploy state, chat turns logged and how many were weak. **Run
+Operate** runs detect → diagnose → prescribe and reports the weak questions it
+found plus the rationale. Every proposal appears under **Improvement
+proposals** — open one to read the **full proposed prompt** rendered, or **Edit**
+it into a further version before adopting. To adopt, rebuild on the **Chat**
+page; the new prompt re-enters Prove.
+
+**API**
 ```bash
 # after some real chat traffic against an agent_version:
 curl -X POST localhost:8793/v1/operate -d '{"agent_version_id":"<AVID>"}'

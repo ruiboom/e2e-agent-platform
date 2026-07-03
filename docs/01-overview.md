@@ -62,6 +62,12 @@ opportunity → proposition → scope → {system_prompt, kb_outline}
 Lineage is **append-only**: a new fact is a new artifact version (never an
 in-place edit), enforced at the database level.
 
+Every artifact is **viewable and editable in the console** wherever it appears
+(Lineage tab, each stage's Outputs): open it **rendered** (markdown-aware), flip
+to raw **JSON**, or **Edit** it — saving appends a new version parented on the
+one you edited, so hand edits ride the same golden thread and audit chain as
+generated ones.
+
 ### The provenance tuple
 Every agent answer returns
 `{release_key, agent_version, item_id, revision_id, chunk_id}` — the join key
@@ -103,9 +109,11 @@ emitted as a new artifact version that re-enters the pipeline. The loop closes.
 ## Honest scope (what's minimal vs production)
 
 The platform is **minimal-but-real**: every stage works end-to-end and is
-verified, but some components are deliberately lightweight, with production depth
-deferred (see [02 · Architecture](02-architecture.md#deferred-depth)). Notably:
-embeddings use a dependency-free hash function (real model swaps in behind one
-seam), graph retrieval uses a token entity-index (not Neo4j), build paradigms are
-authoring surfaces over one shared RAG runtime, connectors are RSS + web, and
-guardrails are regex/heuristic (not Presidio/OPA).
+verified. The production-hardening pass ([07 · Hardening](07-hardening.md))
+replaced the original stubs with real depth — hash-chained WORM audit, an
+OPA-style policy engine + risk tiers in Gate 2, Presidio PII + output DLP,
+fastembed semantic embeddings, real OIDC, a Neo4j graph projection with an LLM
+enricher, a real LangGraph runtime, and web/RSS/GitHub connectors. Still
+deferred (see [02 · Architecture](02-architecture.md#deferred-depth)): the
+ADK/flexi/VCBL build runtimes, Confluence-Jira/STT connectors, and real cloud
+deploy targets.

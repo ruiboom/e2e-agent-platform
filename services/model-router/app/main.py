@@ -17,9 +17,11 @@ load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 from app import registry, router  # noqa: E402
 from app.schemas import (  # noqa: E402
     AddVersionRequest,
+    ApproveBundleRequest,
     CreatePromptRequest,
     RouteRequest,
     RouteResponse,
+    SaveDraftRequest,
 )
 
 app = FastAPI(title="model-router", version="0.0.0")
@@ -72,3 +74,37 @@ def get_prompt(key: str) -> dict:
         return registry.get_prompt(key)
     except registry.PromptNotFound as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+# ── Prompt-set governance: drafts (live immediately) + full-bundle versions ──
+
+
+@app.get("/v1/prompt-set")
+def get_prompt_set() -> dict:
+    return registry.get_prompt_set()
+
+
+@app.put("/v1/prompt-set/draft")
+def save_draft(req: SaveDraftRequest) -> dict:
+    try:
+        return registry.save_draft(req.key, req.template, req.updated_by)
+    except registry.PromptNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/v1/prompt-set/draft/{key}")
+def discard_draft(key: str) -> dict:
+    try:
+        return registry.discard_draft(key)
+    except registry.PromptNotFound as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/v1/prompt-set/approve")
+def approve_bundle(req: ApproveBundleRequest) -> dict:
+    try:
+        return registry.approve_bundle(req.approved_by)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

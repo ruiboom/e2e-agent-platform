@@ -39,3 +39,13 @@ class AddVersionRequest(BaseModel):
     template: str
     default_model: Optional[str] = None
     activate: bool = False
+
+
+class SaveDraftRequest(BaseModel):
+    key: str
+    template: str
+    updated_by: str = "admin"
+
+
+class ApproveBundleRequest(BaseModel):
+    approved_by: str = "admin"

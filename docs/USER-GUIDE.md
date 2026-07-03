@@ -79,6 +79,21 @@ Every artifact, at every step, is **viewable and editable** in place:
 - **Academy** → pick a **role path** (e.g. *Conversation Designer*) and mark stages
   complete.
 
+## The engine room — the prompt set (admin)
+
+As **alice** you get a **Prompts** item in the top nav (`/admin/prompts`): every
+prompt powering generation, transformation and evaluation, grouped by process.
+
+- **Edit any prompt** → save as a **draft**. The draft takes effect
+  **immediately** across the whole app (Specify, Chat, Evaluate, Operate…) — the
+  app is your test bench — and draft-served calls are visible in cost tracking
+  as `prompt_version 0`.
+- The draft **stays draft until approved**; discard it to revert instantly.
+- **Approve** promotes every pending draft and snapshots the **complete prompt
+  set** as one immutable bundle version (`prompt set v1, v2, …`). Full bundle
+  every version — no prompt is ever versioned on its own. Approvals land in the
+  audit chain.
+
 ## Governance you can see
 
 - **Four-eyes:** in the example, `bob` submitted the knowledge and `alice`

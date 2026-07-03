@@ -46,4 +46,5 @@ export function requireCap(session: Session | null, cap: Capability): void {
 // Route-segment guards enforced in middleware. First matching prefix wins.
 export const ROUTE_CAPABILITIES: { prefix: string; cap: Capability }[] = [
   { prefix: "/projects/new", cap: "project:create" },
+  { prefix: "/admin/prompts", cap: "prompt:activate" },
 ];

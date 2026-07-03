@@ -4,6 +4,7 @@ import { Badge } from "@agent-platform/design-system";
 
 import { logout } from "@/app/login/actions";
 import { getSession } from "@/lib/auth";
+import { can } from "@/lib/rbac";
 
 const NAV = [
   { href: "/", label: "Dashboard" },
@@ -14,6 +15,9 @@ const NAV = [
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await getSession();
+  const nav = session && can(session.role, "prompt:activate")
+    ? [...NAV, { href: "/admin/prompts", label: "Prompts" }]
+    : NAV;
   return (
     <div className="min-h-screen bg-surface-page">
       {session && (
@@ -23,7 +27,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               Agent Platform
             </Link>
             <nav className="flex items-center gap-4 text-[15px]">
-              {NAV.map((n) => (
+              {nav.map((n) => (
                 <Link key={n.href} href={n.href} className="text-ink-2 no-underline hover:text-brand">
                   {n.label}
                 </Link>

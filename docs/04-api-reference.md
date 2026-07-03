@@ -33,6 +33,8 @@ curl -b jar  localhost:3000/api/projects
 | `GET /api/academy/status` | — | `{stages, liveStages, services, projects}` | authed |
 | `GET /api/academy/progress?path=` | — | `{path, done[], complete}` | authed |
 | `POST /api/academy/progress` | `{path, stageId}` | `{path, done[], complete}` | authed |
+| `GET /api/prompts` | — | the full prompt set: every prompt + pending drafts + bundle history | `prompt:activate` |
+| `POST /api/prompts` | `{action, …}` | per-action (below) | `prompt:activate` |
 | `GET /api/audit/verify` | — | `{ok, count, …}` — walks the hash chain (H1) | authed |
 | `POST /api/admin/retention` · `/api/admin/dsar` | see [07 · Hardening](07-hardening.md) | retention purge / DSAR export+erase | `data:admin` |
 
@@ -53,6 +55,14 @@ testSuiteId}` · `eval {agentVersionId, questions?}` (all `artifact:write`) ·
 `get-policy {projectId}` · `gate2 {projectId, agentVersionId}` (authed) ·
 `set-policy {projectId, preDeployGates, opaRules?}` (`artifact:approve`).
 
+**`/api/prompts` actions** (the `/admin/prompts` screen): `draft {key, template}` —
+save a working draft that live routing uses **immediately** (draft-served calls
+report `prompt_version: 0`) · `discard {key}` — drop the draft, reverting to the
+approved set · `approve {}` — promote every draft and snapshot the **complete
+prompt set** as the next immutable bundle version (full bundle every version — no
+prompt is ever versioned on its own). Approvals are appended to the audit chain
+as `prompt_bundle.approve`.
+
 ---
 
 ## model-router (`:8789`)
@@ -66,10 +76,18 @@ POST /v1/prompts                         { key, name }
 POST /v1/prompts/{key}/versions          { version?, template, default_model?, activate? }
 POST /v1/prompts/{key}/activate?version=N
 GET  /v1/prompts/{key}                   → { key, active_version, versions[] }
+
+GET    /v1/prompt-set                    → { prompts[], draft_count, bundle, bundles[] }
+PUT    /v1/prompt-set/draft              { key, template, updated_by }   (live for routing at once)
+DELETE /v1/prompt-set/draft/{key}
+POST   /v1/prompt-set/approve            { approved_by }
+       → { version, prompt_count, promoted[] }   (snapshots the FULL set as bundle vN+1)
 GET  /healthz
 ```
 
 Every `/v1/route` call emits tokens/cost/latency to cost-tracker automatically.
+Prompt resolution order: explicit `version` → pending **draft** (reported as
+`prompt_version: 0`) → the active version from the approved set.
 
 ---
 

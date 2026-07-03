@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input } from "@agent-platform/design-system";
 
+import { Markdown } from "./Markdown";
+
 interface Provenance {
   release_key: string;
   agent_version: number;
@@ -133,7 +135,11 @@ export function ChatView({
                       : "rounded-lg bg-surface-page px-4 py-3 text-ink"
                   }
                 >
-                  <p className="whitespace-pre-wrap">{m.text}</p>
+                  {m.role === "agent" ? (
+                    <Markdown source={m.text} />
+                  ) : (
+                    <p className="whitespace-pre-wrap">{m.text}</p>
+                  )}
                   {m.provenance && (
                     <div className="mt-2 flex flex-wrap gap-1 border-t border-line pt-2 text-[11px]">
                       <Badge tone="neutral">release {m.provenance.release_key}</Badge>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Textarea } from "@agent-platform/design-system";
 
 import type { GroundState, KbItem } from "@/lib/ground";
+import { Markdown } from "./Markdown";
 
 type SourceKind = "paste" | "web" | "rss" | "github";
 
@@ -94,6 +95,15 @@ export function GroundPanel({
 
   function approve(rev: string) {
     return post({ action: "approve", revisionId: rev }, () => "Approved (four-eyes satisfied).");
+  }
+
+  // Editing a document re-ingests it under the same URI → a new immutable
+  // revision in the submitted state (it goes back through four-eyes).
+  function saveDoc(it: KbItem, body: string) {
+    return post(
+      { action: "ingest", docs: [{ uri: it.uri, title: it.title ?? it.uri, body }] },
+      () => `Saved ${it.uri} as revision ${it.revNumber + 1} — awaiting approval.`,
+    );
   }
 
   function release() {
@@ -201,12 +211,14 @@ export function GroundPanel({
         <CardContent className="flex flex-col gap-2">
           {state.items.map((it) => (
             <ItemRow
-              key={it.itemId}
+              key={it.revisionId}
               it={it}
               userId={userId}
               canApprove={canApprove}
+              canWrite={canWrite}
               busy={busy}
               onApprove={() => approve(it.revisionId)}
+              onSave={(body) => saveDoc(it, body)}
             />
           ))}
           {state.items.length === 0 && <p className="text-[14px] text-ink-3">Ingest a source above to populate the store.</p>}
@@ -260,45 +272,95 @@ function ItemRow({
   it,
   userId,
   canApprove,
+  canWrite,
   busy,
   onApprove,
+  onSave,
 }: {
   it: KbItem;
   userId: string;
   canApprove: boolean;
+  canWrite: boolean;
   busy: boolean;
   onApprove: () => void;
+  onSave: (body: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(it.body);
   const ownSubmission = it.submittedBy === userId;
   const flagged = it.scan.pii + it.scan.injection > 0;
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <Badge tone={it.state === "approved" ? "success" : it.state === "rejected" ? "danger" : "neutral"}>
-            {it.state}
-          </Badge>
-          <span className="truncate text-[15px] font-medium text-ink">{it.title || it.uri}</span>
-        </div>
-        <p className="truncate text-[12px] text-ink-3">
-          <span className="font-mono">{it.uri}</span> · rev {it.revNumber} · {it.chunks} chunk(s)
-          {it.submittedBy ? <> · by {it.submittedBy}</> : null}
-          {it.approvedBy ? <> · approved {it.approvedBy}</> : null}
-          {flagged ? <> · ⚠ {it.scan.pii} PII / {it.scan.injection} injection</> : null}
-        </p>
+    <div className="overflow-hidden rounded-md border border-line">
+      <div className="flex items-center justify-between gap-3 px-3 py-2">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="min-w-0 flex-1 text-left"
+          title={open ? "Collapse" : "View the document"}
+        >
+          <div className="flex items-center gap-2">
+            <Badge tone={it.state === "approved" ? "success" : it.state === "rejected" ? "danger" : "neutral"}>
+              {it.state}
+            </Badge>
+            <span className="truncate text-[15px] font-medium text-ink">{it.title || it.uri}</span>
+            <span className="font-mono text-[13px] text-ink-3">{open ? "−" : "+"}</span>
+          </div>
+          <p className="truncate text-[12px] text-ink-3">
+            <span className="font-mono">{it.uri}</span> · rev {it.revNumber} · {it.chunks} chunk(s)
+            {it.submittedBy ? <> · by {it.submittedBy}</> : null}
+            {it.approvedBy ? <> · approved {it.approvedBy}</> : null}
+            {flagged ? <> · ⚠ {it.scan.pii} PII / {it.scan.injection} injection</> : null}
+          </p>
+        </button>
+        {it.state === "submitted" && (
+          <div className="flex shrink-0 items-center gap-2">
+            {ownSubmission && <span className="text-[12px] text-ink-3">your submission</span>}
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={busy || !canApprove || ownSubmission}
+              onClick={onApprove}
+              title={ownSubmission ? "four-eyes: another approver must sign this off" : ""}
+            >
+              Approve
+            </Button>
+          </div>
+        )}
       </div>
-      {it.state === "submitted" && (
-        <div className="flex shrink-0 items-center gap-2">
-          {ownSubmission && <span className="text-[12px] text-ink-3">your submission</span>}
-          <Button
-            size="sm"
-            variant="secondary"
-            disabled={busy || !canApprove || ownSubmission}
-            onClick={onApprove}
-            title={ownSubmission ? "four-eyes: another approver must sign this off" : ""}
-          >
-            Approve
-          </Button>
+      {open && (
+        <div className="border-t border-line bg-surface-page/30 p-3">
+          {editing ? (
+            <div className="flex flex-col gap-2">
+              <Textarea
+                rows={Math.min(Math.max(draft.split("\n").length + 1, 6), 20)}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+              />
+              <div className="flex items-center gap-2">
+                <Button size="sm" disabled={busy || !draft.trim()} onClick={() => onSave(draft)}>
+                  Save as new revision
+                </Button>
+                <Button size="sm" variant="secondary" disabled={busy} onClick={() => { setEditing(false); setDraft(it.body); }}>
+                  Cancel
+                </Button>
+                <span className="text-[12px] text-ink-3">re-enters four-eyes review before the next release</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div className="max-h-96 overflow-y-auto rounded-md border border-line bg-surface p-4">
+                <Markdown source={it.body} />
+              </div>
+              {canWrite && (
+                <div>
+                  <Button size="sm" variant="secondary" disabled={busy} onClick={() => setEditing(true)}>
+                    Edit document
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

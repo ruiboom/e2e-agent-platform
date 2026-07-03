@@ -73,6 +73,12 @@ export default async function ProjectDetail({
           <Link href={`/projects/${project.slug}/chat`} className="no-underline">
             <Button size="sm" variant="secondary">Chat</Button>
           </Link>
+          <Link href={`/projects/${project.slug}/evaluate`} className="no-underline">
+            <Button size="sm" variant="secondary">Evaluate</Button>
+          </Link>
+          <Link href={`/projects/${project.slug}/operate`} className="no-underline">
+            <Button size="sm" variant="secondary">Operate</Button>
+          </Link>
         </div>
       )}
 
@@ -114,11 +120,12 @@ export default async function ProjectDetail({
           <CardHeader>
             <CardTitle>Artifact lineage</CardTitle>
             <CardDescription>
-              The golden thread — versioned, parent-linked artifacts. Populated as Phase-1 stages run.
+              The golden thread — versioned, parent-linked artifacts. Click one to read it rendered, flip to raw
+              JSON, or edit it into a new version.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <LineageView nodes={orderedNodes} />
+            <LineageView nodes={orderedNodes} canEdit={mayWrite} />
           </CardContent>
         </Card>
       )}

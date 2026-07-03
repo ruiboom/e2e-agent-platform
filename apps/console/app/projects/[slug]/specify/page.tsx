@@ -15,9 +15,12 @@ import {
 import { getSession } from "@/lib/auth";
 import { lineage } from "@/lib/lineage";
 import { can } from "@/lib/rbac";
+import { LineageView } from "@/components/LineageView";
 import { specifyAction } from "./actions";
 
 export const dynamic = "force-dynamic";
+
+const SPEC_TYPES = ["scope", "system_prompt", "kb_outline"];
 
 export default async function SpecifyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -27,8 +30,13 @@ export default async function SpecifyPage({ params }: { params: Promise<{ slug: 
   const session = await getSession();
   const mayWrite = session ? can(session.role, "artifact:write") : false;
 
+  const g = await lineage().getLineage(project.id);
+  const outputs = g.nodes
+    .filter((n) => SPEC_TYPES.includes(n.type))
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4">
+    <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div>
         <Link href={`/projects/${slug}`} className="text-[14px] text-ink-3 no-underline hover:text-brand">
           ← {project.name}
@@ -60,6 +68,18 @@ export default async function SpecifyPage({ params }: { params: Promise<{ slug: 
           ) : (
             <p className="text-ink-3">Your role can&apos;t write artifacts.</p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Outputs</CardTitle>
+          <CardDescription>
+            The spec artifacts — read them rendered, or edit one into a new version before Build picks it up.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LineageView nodes={outputs} canEdit={mayWrite} />
         </CardContent>
       </Card>
     </div>

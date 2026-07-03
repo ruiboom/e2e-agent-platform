@@ -11,5 +11,5 @@ export async function specifyAction(formData: FormData): Promise<void> {
   const topic = String(formData.get("topic") ?? "");
 
   await runSpecify(session, projectId, topic);
-  redirect(`/projects/${slug}?tab=lineage`);
+  redirect(`/projects/${slug}/specify`);
 }

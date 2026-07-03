@@ -1,14 +1,28 @@
 import { Fragment, type ReactNode } from "react";
 
+import { Markdown } from "./Markdown";
+
 // Readable, recursive renderer for any artifact payload (no hooks — usable in
-// server or client components). Strings wrap; arrays become lists; objects
-// become labelled key/value grids.
+// server or client components). Markdown-ish strings render as rich text;
+// arrays become lists; objects become labelled key/value grids.
+
+const MD_HINT =
+  /(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>\s|`{3})|\*\*[^*\n]+\*\*|`[^`\n]+`|\[[^\]]+\]\([^)]+\)/;
+
+export function isMarkdownish(s: string): boolean {
+  return s.includes("\n") || MD_HINT.test(s);
+}
+
 function render(value: unknown, depth = 0): ReactNode {
   if (value === null || value === undefined || value === "") {
     return <span className="text-ink-3">—</span>;
   }
   if (typeof value === "string") {
-    return <span className="whitespace-pre-wrap break-words">{value}</span>;
+    return isMarkdownish(value) ? (
+      <Markdown source={value} />
+    ) : (
+      <span className="whitespace-pre-wrap break-words">{value}</span>
+    );
   }
   if (typeof value === "number" || typeof value === "boolean") {
     return <span className="font-mono text-[13px]">{String(value)}</span>;

@@ -22,6 +22,7 @@ export interface KbItem {
   chunks: number;
   scan: KbScan;
   createdAt: string;
+  body: string;
 }
 
 export interface KbRelease {
@@ -52,10 +53,11 @@ export async function getGroundState(projectId: string): Promise<GroundState> {
     pii: unknown;
     injection: unknown;
     created_at: string;
+    body: string;
   }>(
     `SELECT i.id AS item_id, i.uri, i.title,
             r.id AS revision_id, r.rev_number, r.state, r.submitted_by, r.approved_by,
-            r.created_at,
+            r.created_at, r.body,
             (SELECT count(*) FROM kb_chunk c WHERE c.revision_id = r.id) AS chunks,
             r.scan_results->'pii'       AS pii,
             r.scan_results->'injection' AS injection
@@ -82,6 +84,7 @@ export async function getGroundState(projectId: string): Promise<GroundState> {
     chunks: Number(r.chunks),
     scan: { pii: countFindings(r.pii), injection: countFindings(r.injection) },
     createdAt: r.created_at,
+    body: r.body,
   }));
 
   const { rows: rel } = await pool().query<{

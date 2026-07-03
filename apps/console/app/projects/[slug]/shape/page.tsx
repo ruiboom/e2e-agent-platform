@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@agent-platform/design-system";
 
+import { getSession } from "@/lib/auth";
 import { lineage } from "@/lib/lineage";
+import { can } from "@/lib/rbac";
 import { ShapePanel } from "@/components/ShapePanel";
 import { LineageView } from "@/components/LineageView";
 
@@ -15,6 +17,9 @@ export default async function ShapePage({ params }: { params: Promise<{ slug: st
   const { slug } = await params;
   const project = await lineage().getProject(slug);
   if (!project) notFound();
+
+  const session = await getSession();
+  const mayWrite = session ? can(session.role, "artifact:write") : false;
 
   const g = await lineage().getLineage(project.id);
   const latest = (t: string) => g.nodes.filter((n) => n.type === t).sort((a, b) => b.version - a.version)[0];
@@ -62,10 +67,12 @@ export default async function ShapePage({ params }: { params: Promise<{ slug: st
       <Card>
         <CardHeader>
           <CardTitle>Outputs</CardTitle>
-          <CardDescription>The artifacts each stage produced — click to read the content.</CardDescription>
+          <CardDescription>
+            The artifacts each stage produced — click to read them rendered, or edit one into a new version.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <LineageView nodes={outputs} />
+          <LineageView nodes={outputs} canEdit={mayWrite} />
         </CardContent>
       </Card>
     </div>
